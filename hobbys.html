@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hobbys – Franz Barjak</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <a href="index.html">Start</a>
+  <a href="lebenslauf.html">Lebenslauf</a>
+  <a href="hobbys.html">Hobbys</a>
+  <a href="kontakt.html">Kontakt</a>
+  <a href="video.html">Video</a>
+</nav>
+<main>
+<h1>Meine Hobbys</h1>
+<p>Eines meiner liebsten Hobbys ist Boxen. Ich trainiere regelmäßig und spiele auch Gitarre.</p>
+<p>Klicke auf Start, um das Boxspiel zu beginnen.</p>
+<button id="startButton">Start</button>
+<canvas id="gameCanvas" width="400" height="300" style="background:#eee; margin-top:20px;"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let boxerX = 180, punch = false, gameStarted = false;
+const startButton = document.getElementById('startButton');
+
+startButton.onclick = () => {
+    gameStarted = true;
+    startButton.style.display = 'none';
+    draw();
+}
+
+function draw() {
+    if(!gameStarted) return;
+    ctx.clearRect(0,0,400,300);
+    ctx.fillStyle="#333";
+    ctx.fillRect(boxerX,200,40,80);
+    if(punch) ctx.fillRect(boxerX+40,220,40,10);
+}
+
+window.addEventListener('keydown', e => {
+    if(!gameStarted) return;
+    if(e.key === 'ArrowLeft' && boxerX>0) boxerX -= 10;
+    if(e.key === 'ArrowRight' && boxerX<360) boxerX += 10;
+    if(e.key === ' ') {
+        punch = true;
+        draw();
+        setTimeout(()=>{punch=false; draw();},200);
+    }
+    draw();
+});
+</script>
+</main>
+</body>
+</html>
