@@ -20,39 +20,70 @@
 <p>Eines meiner liebsten Hobbys ist Boxen. Ich trainiere regelmäßig und spiele auch Gitarre.</p>
 <p>Klicke auf Start, um das Boxspiel zu beginnen.</p>
 <button id="startButton">Start</button>
-<canvas id="gameCanvas" width="400" height="300" style="background:#eee; margin-top:20px;"></canvas>
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let boxerX = 180, punch = false, gameStarted = false;
-const startButton = document.getElementById('startButton');
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hobbys — 2D Boxkampf</title>
+  <link rel="stylesheet" href="static/css/boxfight.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Hobbys — 2D Boxkampf</h1>
 
-startButton.onclick = () => {
-    gameStarted = true;
-    startButton.style.display = 'none';
-    draw();
-}
+    <section class="game-wrapper">
+      <div class="hud">
+        <div class="player-hp">
+          <div id="player-name">Du</div>
+          <div class="bar">
+            <div id="player-health" class="health"></div>
+          </div>
+        </div>
 
-function draw() {
-    if(!gameStarted) return;
-    ctx.clearRect(0,0,400,300);
-    ctx.fillStyle="#333";
-    ctx.fillRect(boxerX,200,40,80);
-    if(punch) ctx.fillRect(boxerX+40,220,40,10);
-}
+        <div class="enemy-hp">
+          <div id="enemy-name">Gegner</div>
+          <div class="bar">
+            <div id="enemy-health" class="health"></div>
+          </div>
+        </div>
+      </div>
 
-window.addEventListener('keydown', e => {
-    if(!gameStarted) return;
-    if(e.key === 'ArrowLeft' && boxerX>0) boxerX -= 10;
-    if(e.key === 'ArrowRight' && boxerX<360) boxerX += 10;
-    if(e.key === ' ') {
-        punch = true;
-        draw();
-        setTimeout(()=>{punch=false; draw();},200);
-    }
-    draw();
-});
-</script>
-</main>
+      <canvas id="game" width="900" height="420" aria-label="2D Boxkampf Spiel"></canvas>
+
+      <div class="controls">
+        <div class="instructions">
+          <strong>Steuerung (Desktop):</strong> A/D = links/rechts, W = Sprung, J = Schlag, K = Tritt<br/>
+          <strong>Mobile:</strong> Nutze die Buttons unten.
+        </div>
+
+        <div class="mobile-buttons" id="mobile-buttons">
+          <button class="btn move" data-action="left">◀</button>
+          <button class="btn move" data-action="right">▶</button>
+          <button class="btn action" data-action="jump">↑</button>
+          <button class="btn action" data-action="punch">Schlag</button>
+          <button class="btn action" data-action="kick">Tritt</button>
+        </div>
+
+        <div class="actions">
+          <button id="restart">Neustart</button>
+          <label>
+            KI-Schwierigkeit:
+            <select id="difficulty">
+              <option value="0.6">Leicht</option>
+              <option value="0.8" selected>Mittel</option>
+              <option value="1.0">Schwer</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="message" class="message" aria-live="polite"></div>
+    </section>
+
+    <p class="footnote">Kleine Demo: Änderungen am Balancing, Grafiken oder Sound sind leicht möglich — sag Bescheid, wenn du das in dein Framework eingebunden haben möchtest.</p>
+  </main>
+
+  <script src="static/js/boxfight.js"></script>
 </body>
 </html>
