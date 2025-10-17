@@ -87,3 +87,137 @@
   <script src="static/js/boxfight.js"></script>
 </body>
 </html>
+  :root{
+  --bg:#0f1720;
+  --panel:#0b1220;
+  --accent:#ff4d4d;
+  --accent2:#4da6ff;
+  --hp-bg:#2a2f36;
+  --hp-fill:#ff6666;
+  --hp-enemy:#66a3ff;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--font);
+  background:linear-gradient(180deg,var(--bg),#071018);
+  color:#e6eef8;
+  padding:24px;
+}
+
+.container{
+  max-width:1000px;
+  margin:0 auto;
+}
+
+h1{margin:0 0 14px 0;font-size:1.6rem}
+
+.game-wrapper{
+  background:var(--panel);
+  padding:14px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.6);
+}
+
+.hud{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.player-hp, .enemy-hp{
+  flex:1;
+}
+
+.bar{
+  background:var(--hp-bg);
+  height:14px;
+  border-radius:8px;
+  overflow:hidden;
+  margin-top:6px;
+}
+
+.health{
+  height:100%;
+  width:100%;
+  transition:width 200ms linear;
+}
+
+#player-health{background:var(--hp-fill)}
+#enemy-health{background:var(--hp-enemy); width:100%}
+
+canvas{
+  width:100%;
+  max-width:900px;
+  background:linear-gradient(#87CEEB, #7ec0ee);
+  border-radius:6px;
+  display:block;
+  margin:0 auto;
+  box-shadow:0 6px 12px rgba(0,0,0,0.4);
+}
+
+.controls{
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+
+.instructions{font-size:0.9rem;color:#cfe8ff;text-align:center}
+
+.mobile-buttons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.btn{
+  padding:10px 14px;
+  background:#081829;
+  border:1px solid rgba(255,255,255,0.06);
+  color:#e6eef8;
+  border-radius:8px;
+  min-width:60px;
+  font-weight:600;
+  box-shadow:0 4px 8px rgba(0,0,0,0.4);
+  touch-action:none;
+}
+
+.btn:active{transform:translateY(1px)}
+
+.actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-top:6px;
+}
+
+#restart{
+  background:var(--accent);
+  border:none;
+  color:white;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+#message{
+  margin-top:10px;
+  text-align:center;
+  font-weight:700;
+  font-size:1.05rem;
+  color:#ffd;
+  min-height:1.2em;
+}
+
+/* Responsive */
+@media (max-width:520px){
+  .btn{min-width:44px;padding:10px}
+}
