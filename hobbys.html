@@ -24,23 +24,17 @@
     <h1>Meine Hobbys</h1>
     <p>Eines meiner liebsten Hobbys ist Boxen. Ich trainiere regelmäßig und spiele auch Gitarre.</p>
     <p>Klicke auf Start, um das Boxspiel zu beginnen.</p>
-    <button id="startButton">Start</button>
+    <button id="startButton" disabled>Start (lade Assets)</button>
 
-    <!-- Spiel-Section (anfangs versteckt, wird per Start sichtbar gemacht) -->
     <section id="gameSection" class="game-wrapper" style="display:none; margin-top:16px;">
       <div class="hud">
         <div class="player-hp">
           <div id="player-name">Du</div>
-          <div class="bar">
-            <div id="player-health" class="health"></div>
-          </div>
+          <div class="bar"><div id="player-health" class="health"></div></div>
         </div>
-
         <div class="enemy-hp">
           <div id="enemy-name">Gegner</div>
-          <div class="bar">
-            <div id="enemy-health" class="health"></div>
-          </div>
+          <div class="bar"><div id="enemy-health" class="health"></div></div>
         </div>
       </div>
 
@@ -79,29 +73,93 @@
     </section>
   </main>
 
-  <!-- externe Spiel-Logik laden (statische Datei) -->
+  <!-- Spiel-Logik -->
   <script src="static/js/boxfight.js"></script>
 
-  <!-- kleines Inline-Skript, das den Start-Button mit der Spiel-Section verbindet -->
+  <!-- Asset-Preloader und Start-Integration -->
   <script>
+    // Passe hier die Pfade an die tatsächlichen Dateinamen an
+    const ASSETS = {
+      bg: 'static/images/bg.jpg',              // Hintergrundbild
+      player: 'static/images/player.png',      // Spieler-Sprite
+      enemy: 'static/images/enemy.png'         // Gegner-Sprite
+      // Füge hier weitere assets hinzu falls benötigt
+    };
+
+    function preloadImages(list) {
+      const keys = Object.keys(list);
+      const images = {};
+      let loaded = 0;
+      let failed = 0;
+
+      return new Promise(resolve => {
+        if (keys.length === 0) return resolve(images);
+
+        keys.forEach(key => {
+          const img = new Image();
+          img.src = list[key];
+          img.onload = () => {
+            images[key] = img;
+            loaded++;
+            if (loaded + failed === keys.length) resolve({images, failed});
+          };
+          img.onerror = () => {
+            console.error('Asset konnte nicht geladen werden:', list[key]);
+            failed++;
+            if (loaded + failed === keys.length) resolve({images, failed});
+          };
+        });
+      });
+    }
+
     (function () {
       const startBtn = document.getElementById('startButton');
       const gameSection = document.getElementById('gameSection');
 
+      // Preload starten
+      preloadImages(ASSETS).then(({images, failed}) => {
+        if (failed > 0) {
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe die Pfade in hobbys.html und den images-Ordner.');
+        } else {
+          console.log('Alle Assets geladen.');
+        }
+
+        // Mach die Bilder global verfügbar für boxfight.js falls es sie nutzen kann
+        window.PRELOADED_ASSETS = images;
+
+        // Falls boxfight.js bietet eine Init-Funktion, rufe sie jetzt auf
+        if (typeof BoxFightInit === 'function') {
+          try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
+        }
+        if (typeof startBoxFight === 'function') {
+          try { startBoxFight(images); } catch (e) { console.warn('startBoxFight Fehler', e); }
+        }
+
+        // Button aktivieren
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start';
+      });
+
+      // Start-Button Funktionalität
       startBtn.addEventListener('click', function () {
-        if (!gameSection) return;
         gameSection.style.display = 'block';
         gameSection.scrollIntoView({ behavior: 'smooth' });
-
-        // Falls das Boxfight-Skript initialisiert wird bevor das Canvas sichtbar ist,
-        // kann ein einfacher Neustart via Neustart-Button helfen; das Spiel-Skript
-        // selbst sollte restart/reset unterstützen (es tut das in der gelieferten Version).
         const canvas = document.getElementById('game');
-        if (canvas) {
-          canvas.focus && canvas.focus();
+        canvas && canvas.focus && canvas.focus();
+
+        // Falls boxfight.js bietet eine explizite start-Funktion
+        if (typeof BoxFightStart === 'function') {
+          try { BoxFightStart(); } catch (e) { console.warn('BoxFightStart Fehler', e); }
+        } else if (typeof startGame === 'function') {
+          try { startGame(); } catch (e) { console.warn('startGame Fehler', e); }
+        } else {
+          // Viele Implementierungen initialisieren selbst beim Laden oder beim Klick auf Start,
+          // falls dein boxfight.js intern images per Pfad lädt, prüfe die Pfade dort.
+          console.log('Spiel gestartet. Falls kein Bild erscheint, kontrolliere die Pfade im static/js/boxfight.js.');
         }
       });
     })();
   </script>
 </body>
 </html>
+
