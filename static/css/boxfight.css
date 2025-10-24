@@ -1,0 +1,29 @@
+/* Boxfight - CSS Datei */
+
+/* Spielfeld */
+#game {
+  display: block;
+  margin: 0 auto;
+  background: url("../images/bg.jpg") no-repeat center;
+  background-size: cover;
+  border: 3px solid black;
+}
+
+/* Gesundheitsbalken */
+.health {
+  height: 20px;
+  background: red;
+  width: 100%;
+}
+
+/* Buttons & Steuerung */
+.controls {
+  text-align: center;
+  margin-top: 20px;
+}
+
+button {
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
