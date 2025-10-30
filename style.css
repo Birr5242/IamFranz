@@ -1,3 +1,4 @@
+/* Basis-Layout */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -8,6 +9,7 @@ body {
   color: #333;
 }
 
+/* Navigation */
 nav {
   background-color: #1976d2;
   padding: 10px;
@@ -21,16 +23,20 @@ nav a {
   font-weight: bold;
 }
 
-nav a:hover { color: #FFFFFF; }
+nav a:hover {
+  color: #ffffff;
+}
 
+/* Main-Bereich */
 main {
   padding: 40px;
-  max-width: 800px;
+  max-width: 1000px;
   margin: auto;
   background: rgba(255,255,255,0.95);
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
+
 /* Hero-Bereich */
 .hero {
   position: relative;
@@ -66,4 +72,46 @@ main {
 
 .hero-text p {
   font-size: 1.1rem;
+}
+
+/* Text + Video nebeneinander */
+.content-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 40px;
+}
+
+.text-left {
+  flex: 1;
+  min-width: 250px;
+  margin-right: 20px;
+}
+
+.video-right {
+  flex: 1;
+  min-width: 250px;
+  text-align: center;
+}
+
+.video-right video {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+  .content-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .text-left {
+    margin-right: 0;
+    margin-bottom: 20px;
+    text-align: center;
+  }
 }
