@@ -4,7 +4,7 @@
 #game {
   display: block;
   margin: 0 auto;
-  background: url("../images/bg.jpg") no-repeat center;
+  background: url("../../img/bg.jpg") no-repeat center;
   background-size: cover;
   border: 3px solid black;
 }
