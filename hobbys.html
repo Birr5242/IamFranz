@@ -74,16 +74,15 @@
   </main>
 
   <!-- Spiel-Logik -->
-  <script src="js/boxfight.js"></script>
+  <script src="static/js/boxfight.js"></script>
 
   <!-- Asset-Preloader und Start-Integration -->
   <script>
-    // Passe hier die Pfade an die tatsächlichen Dateinamen an
+    // Pfade angepasst: images/ liegt auf derselben Ebene wie hobbys.html
     const ASSETS = {
-     bg: 'img/bg.jpg',        // Hintergrundbild
-    player: 'img/player.png', // Spielerfigur
-    enemy: 'img/fighter.png'  // Gegnerfigur  
-      // Füge hier weitere assets hinzu falls benötigt
+      bg: 'images/bg.jpg',        // Hintergrundbild
+      player: 'images/player.png', // Spielerfigur
+      enemy: 'images/fighter.png'  // Gegnerfigur
     };
 
     function preloadImages(list) {
@@ -124,16 +123,12 @@
           console.log('Alle Assets geladen.');
         }
 
-        // Mach die Bilder global verfügbar für boxfight.js falls es sie nutzen kann
+        // Bilder global verfügbar machen
         window.PRELOADED_ASSETS = images;
 
-        // Falls boxfight.js bietet eine Init-Funktion, rufe sie jetzt auf
-        if (typeof BoxFightInit === 'function') {
-          try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
-        }
-        if (typeof startBoxFight === 'function') {
-          try { startBoxFight(images); } catch (e) { console.warn('startBoxFight Fehler', e); }
-        }
+        // BoxFightInit oder startBoxFight falls vorhanden
+        if (typeof BoxFightInit === 'function') try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
+        if (typeof startBoxFight === 'function') try { startBoxFight(images); } catch (e) { console.warn('startBoxFight Fehler', e); }
 
         // Button aktivieren
         startBtn.disabled = false;
@@ -147,22 +142,11 @@
         const canvas = document.getElementById('game');
         canvas && canvas.focus && canvas.focus();
 
-        // Falls boxfight.js bietet eine explizite start-Funktion
-        if (typeof BoxFightStart === 'function') {
-          try { BoxFightStart(); } catch (e) { console.warn('BoxFightStart Fehler', e); }
-        } else if (typeof startGame === 'function') {
-          try { startGame(); } catch (e) { console.warn('startGame Fehler', e); }
-        } else {
-          // Viele Implementierungen initialisieren selbst beim Laden oder beim Klick auf Start,
-          // falls dein boxfight.js intern images per Pfad lädt, prüfe die Pfade dort.
-          console.log('Spiel gestartet. Falls kein Bild erscheint, kontrolliere die Pfade im static/js/boxfight.js.');
-   }
+        if (typeof BoxFightStart === 'function') try { BoxFightStart(); } catch (e) { console.warn('BoxFightStart Fehler', e); }
+        else if (typeof startGame === 'function') try { startGame(); } catch (e) { console.warn('startGame Fehler', e); }
+        else console.log('Spiel gestartet. Falls kein Bild erscheint, kontrolliere die Pfade im static/js/boxfight.js.');
       });
     })();
   </script>
-
-  <!-- Spiel-Logik -->
-  <script src="static/js/boxfight.js"></script>
 </body>
 </html>
-
