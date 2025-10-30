@@ -36,24 +36,19 @@ for (const key in ASSETS) {
   };
 }
 
-// Spieler und Gegner
-const player = { x: 100, y: 280, width: 50, height: 80, hp: 100, speed: 5, attack: false, vy:0, jumping:false };
-const enemy = { x: 600, y: 280, width: 50, height: 80, hp: 100, speed: 2, attack: false };
+// Spieler und Gegner (wird bei Neustart zurückgesetzt)
+let player, enemy;
 
+// Spielzustand
 let gameRunning = false;
-let countdown = 3; // Countdown in Sekunden
+let countdown = 3;
 let enemyActive = false;
+let enemyAttackCooldown = 0;
 
 // Tastenstatus
 const keys = { ArrowLeft: false, ArrowRight: false, Space: false, KeyW:false };
-
-window.addEventListener("keydown", (e) => {
-  if (e.code in keys) keys[e.code] = true;
-});
-
-window.addEventListener("keyup", (e) => {
-  if (e.code in keys) keys[e.code] = false;
-});
+window.addEventListener("keydown", (e) => { if (e.code in keys) keys[e.code] = true; });
+window.addEventListener("keyup", (e) => { if (e.code in keys) keys[e.code] = false; });
 
 // Update Funktion
 function update() {
@@ -70,7 +65,7 @@ function update() {
 
   // Gravitation
   player.y += player.vy;
-  player.vy += 0.5; // Schwerkraft
+  player.vy += 0.5;
   if (player.y >= 280) {
     player.y = 280;
     player.vy = 0;
@@ -81,22 +76,22 @@ function update() {
   player.attack = keys.Space;
 
   if (enemyActive) {
-    // Gegner läuft automatisch auf Spieler zu
+    // Gegner bewegt sich auf Spieler zu
     if (enemy.x > player.x) enemy.x -= enemy.speed;
     if (enemy.x < player.x) enemy.x += enemy.speed;
 
-    // Gegner angreifen, wenn nah beim Spieler
-    enemy.attack = Math.abs(enemy.x - player.x) < 60;
+    // Gegner greift nur alle 30 Frames an (~0,5 Sek bei 60FPS)
+    if (enemyAttackCooldown <= 0 && Math.abs(enemy.x - player.x) < 60 && Math.abs(player.y - enemy.y) < 50) {
+      player.hp -= 5; // reduzierter Schaden
+      enemyAttackCooldown = 30; // Cooldown
+      enemy.attackEffect = 10; // zeigt kurz Angriffseffekt
+    }
+    if (enemyAttackCooldown > 0) enemyAttackCooldown--;
   }
 
   // Treffererkennung Spieler -> Gegner
   if (player.attack && Math.abs(player.x - enemy.x) < 60 && Math.abs(player.y - enemy.y) < 50) {
     enemy.hp -= 1;
-  }
-
-  // Treffererkennung Gegner -> Spieler
-  if (enemy.attack && Math.abs(enemy.x - player.x) < 60 && Math.abs(player.y - enemy.y) < 50) {
-    player.hp -= 0.5; // Gegner greift langsamer an
   }
 
   // Leben begrenzen
@@ -117,11 +112,12 @@ function update() {
 function draw() {
   if (!gameRunning) return;
 
-  update(); // Positionen und Logik updaten
+  update();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(loadedAssets.bg, 0, 0, canvas.width, canvas.height);
 
+  // Spieler und Gegner zeichnen
   ctx.drawImage(loadedAssets.player, player.x, player.y, player.width, player.height);
   ctx.drawImage(loadedAssets.enemy, enemy.x, enemy.y, enemy.width, enemy.height);
 
@@ -131,11 +127,18 @@ function draw() {
   // Lebensbalken Gegner
   ctx.fillRect(canvas.width - 220, 20, enemy.hp * 2, 10);
 
-  // Countdown anzeigen, wenn noch aktiv
+  // Countdown anzeigen
   if (!enemyActive) {
     ctx.fillStyle = "white";
     ctx.font = "48px Arial";
     ctx.fillText(countdown, canvas.width/2 - 15, canvas.height/2);
+  }
+
+  // Gegner-Angriffseffekt (kurz aufleuchten)
+  if (enemy.attackEffect > 0) {
+    ctx.fillStyle = "rgba(255,0,0,0.5)";
+    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    enemy.attackEffect--;
   }
 
   requestAnimationFrame(draw);
@@ -143,8 +146,8 @@ function draw() {
 
 // Countdown Funktion
 function startCountdown() {
+  draw();
   if (countdown > 0) {
-    draw(); // Anzeige aktualisieren
     setTimeout(() => {
       countdown--;
       startCountdown();
@@ -154,15 +157,17 @@ function startCountdown() {
   }
 }
 
-// Startbutton
+// Startbutton & Neustart
 document.getElementById("startButton").addEventListener("click", () => {
-  if (!gameRunning) {
-    gameRunning = true;
-    countdown = 3;
-    enemyActive = false;
-    document.getElementById("startButton").disabled = true;
-    document.getElementById("gameSection").style.display = "block";
-    console.log("Spiel gestartet!");
-    startCountdown();
-  }
+  // Spielobjekte zurücksetzen
+  player = { x: 100, y: 280, width: 50, height: 80, hp: 100, speed: 5, attack: false, vy:0, jumping:false };
+  enemy = { x: 600, y: 280, width: 50, height: 80, hp: 100, speed: 2, attack: false, attackEffect:0 };
+  countdown = 3;
+  enemyActive = false;
+  enemyAttackCooldown = 0;
+  gameRunning = true;
+  document.getElementById("startButton").disabled = true;
+  document.getElementById("gameSection").style.display = "block";
+  console.log("Spiel gestartet!");
+  startCountdown();
 });
