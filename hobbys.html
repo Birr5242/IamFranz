@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <canvas id="game" width="900" height="420" aria-label="2D Boxkampf Spiel"></canvas>
+      <canvas id="game" width="900" height="420" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
 
       <div class="controls">
         <div class="instructions">
@@ -78,13 +78,28 @@
 
   <!-- Asset-Preloader und Start-Integration -->
   <script>
-  // Pfade angepasst: img/ liegt auf derselben Ebene wie hobbys.html
-  const ASSETS = {
-    bg: 'img/bg.jpg',        // Hintergrundbild
-    player: 'img/player.png', // Spielerfigur
-    enemy: 'img/fighter.png'  // Gegnerfigur
-  };
+    // Hier die Bild-Dateinamen, die in /img/ liegen müssen.
+    // Falls du andere Dateinamen benutzt, ändere sie hier entsprechend.
+    const ASSETS = {
+      bg: 'img/bg.jpg',
 
+      // Idle / Box-Animation (normalzustand)
+      player_idle_1: 'img/Boxanimation1-1.png',
+      player_idle_2: 'img/Boxanimation1-2.png',
+
+      // Lauf-Animation (lege mehrere Frames an, falls vorhanden)
+      player_run_1: 'img/Laufanimation1-1.png',
+      player_run_2: 'img/Laufanimation1-2.png',
+      player_run_3: 'img/Laufanimation1-3.png',
+
+      // Sprung-Frames (falls du mehrere hast)
+      player_jump_1: 'img/Spring-1.png',
+      player_jump_2: 'img/Spring-2.png',
+      player_jump_3: 'img/Spring-3.png',
+
+      // Gegnerbild (bleibt wie vorher)
+      enemy: 'img/fighter.png'
+    };
 
     function preloadImages(list) {
       const keys = Object.keys(list);
@@ -119,7 +134,7 @@
       // Preload starten
       preloadImages(ASSETS).then(({images, failed}) => {
         if (failed > 0) {
-          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe die Pfade in hobbys.html und den images-Ordner.');
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe die Pfade in hobbys.html und den img-Ordner.');
         } else {
           console.log('Alle Assets geladen.');
         }
@@ -127,9 +142,10 @@
         // Bilder global verfügbar machen
         window.PRELOADED_ASSETS = images;
 
-        // BoxFightInit oder startBoxFight falls vorhanden
-        if (typeof BoxFightInit === 'function') try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
-        if (typeof startBoxFight === 'function') try { startBoxFight(images); } catch (e) { console.warn('startBoxFight Fehler', e); }
+        // Initialisierungsfunktion (wird in boxfight.js verwendet)
+        if (typeof BoxFightInit === 'function') {
+          try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
+        }
 
         // Button aktivieren
         startBtn.disabled = false;
@@ -144,8 +160,22 @@
         canvas && canvas.focus && canvas.focus();
 
         if (typeof BoxFightStart === 'function') try { BoxFightStart(); } catch (e) { console.warn('BoxFightStart Fehler', e); }
-        else if (typeof startGame === 'function') try { startGame(); } catch (e) { console.warn('startGame Fehler', e); }
         else console.log('Spiel gestartet. Falls kein Bild erscheint, kontrolliere die Pfade im static/js/boxfight.js.');
+      });
+
+      // Restart-Button an Boxfight delegieren (boxfight.js registriert Handler)
+      document.getElementById('restart').addEventListener('click', () => {
+        if (typeof BoxFightRestart === 'function') BoxFightRestart();
+      });
+
+      // Mobile-Button-Ereignisse
+      document.getElementById('mobile-buttons').addEventListener('click', (ev) => {
+        const btn = ev.target.closest('button');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, true);
+        // kurz drücken
+        setTimeout(()=>{ if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, false); }, 150);
       });
     })();
   </script>
