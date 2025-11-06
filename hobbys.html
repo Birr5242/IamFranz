@@ -42,7 +42,7 @@
 
       <div class="controls">
         <div class="instructions">
-          <strong>Steuerung (Desktop):</strong> A/D = links/rechts, W = Sprung, J = Schlag, K = Tritt<br/>
+          <strong>Steuerung (Desktop):</strong> A/D = links/rechts, W = Sprung, K = Schlag<br/>
           <strong>Mobile:</strong> Nutze die Buttons unten.
         </div>
 
@@ -51,7 +51,6 @@
           <button class="btn move" data-action="right">▶</button>
           <button class="btn action" data-action="jump">↑</button>
           <button class="btn action" data-action="punch">Schlag</button>
-          <button class="btn action" data-action="kick">Tritt</button>
         </div>
 
         <div class="actions">
@@ -68,8 +67,7 @@
       </div>
 
       <div id="message" class="message" aria-live="polite"></div>
-
-      <p class="footnote">Kleine Demo: Änderungen am Balancing, Grafiken oder Sound sind leicht möglich — sag Bescheid, wenn du das in dein Framework eingebunden haben möchtest.</p>
+      <p class="footnote">Kleine Demo: Änderungen am Balancing, Grafiken oder Sound sind leicht möglich.</p>
     </section>
   </main>
 
@@ -78,38 +76,37 @@
 
   <!-- Asset-Preloader und Start-Integration -->
   <script>
-    // Hier die Bild-Dateinamen, die in /img/ liegen müssen.
-    // Falls du andere Dateinamen benutzt, ändere sie hier entsprechend.
     const ASSETS = {
       bg: 'img/hintergrund.png',
 
-      // Idle / Box-Animation (normalzustand)
+      // Idle
       player_idle_1: 'img/Boxanimation1-1.png',
       player_idle_2: 'img/Boxanimation1-2.png',
 
-      // Lauf-Animation (lege mehrere Frames an, falls vorhanden)
+      // Lauf
       player_run_1: 'img/Laufanimation1-1.png',
       player_run_2: 'img/Laufanimation1-2.png',
-      player_run_3: 'img/Laufanimation1-3.png',
 
-      // Sprung-Frames (falls du mehrere hast)
+      // Sprung
       player_jump_1: 'img/Spring-1.png',
       player_jump_2: 'img/Spring-2.png',
       player_jump_3: 'img/Spring-3.png',
 
-      // Gegnerbild (bleibt wie vorher)
+      // Schlag
+      player_punch_1: 'img/Schlag-1.png',
+      player_punch_2: 'img/Schlag-2.png',
+
+      // Gegner
       enemy: 'img/fighter.png'
     };
 
     function preloadImages(list) {
       const keys = Object.keys(list);
       const images = {};
-      let loaded = 0;
-      let failed = 0;
+      let loaded = 0, failed = 0;
 
       return new Promise(resolve => {
         if (keys.length === 0) return resolve(images);
-
         keys.forEach(key => {
           const img = new Image();
           img.src = list[key];
@@ -131,50 +128,33 @@
       const startBtn = document.getElementById('startButton');
       const gameSection = document.getElementById('gameSection');
 
-      // Preload starten
       preloadImages(ASSETS).then(({images, failed}) => {
         if (failed > 0) {
-          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe die Pfade in hobbys.html und den img-Ordner.');
-        } else {
-          console.log('Alle Assets geladen.');
-        }
-
-        // Bilder global verfügbar machen
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade in hobbys.html und den img-Ordner.');
+        } else console.log('Alle Assets geladen.');
         window.PRELOADED_ASSETS = images;
-
-        // Initialisierungsfunktion (wird in boxfight.js verwendet)
-        if (typeof BoxFightInit === 'function') {
-          try { BoxFightInit(images); } catch (e) { console.warn('BoxFightInit Fehler', e); }
-        }
-
-        // Button aktivieren
+        if (typeof BoxFightInit === 'function') BoxFightInit(images);
         startBtn.disabled = false;
         startBtn.textContent = 'Start';
       });
 
-      // Start-Button Funktionalität
       startBtn.addEventListener('click', function () {
         gameSection.style.display = 'block';
         gameSection.scrollIntoView({ behavior: 'smooth' });
         const canvas = document.getElementById('game');
-        canvas && canvas.focus && canvas.focus();
-
-        if (typeof BoxFightStart === 'function') try { BoxFightStart(); } catch (e) { console.warn('BoxFightStart Fehler', e); }
-        else console.log('Spiel gestartet. Falls kein Bild erscheint, kontrolliere die Pfade im static/js/boxfight.js.');
+        if (canvas && canvas.focus) canvas.focus();
+        if (typeof BoxFightStart === 'function') BoxFightStart();
       });
 
-      // Restart-Button an Boxfight delegieren (boxfight.js registriert Handler)
       document.getElementById('restart').addEventListener('click', () => {
         if (typeof BoxFightRestart === 'function') BoxFightRestart();
       });
 
-      // Mobile-Button-Ereignisse
-      document.getElementById('mobile-buttons').addEventListener('click', (ev) => {
+      document.getElementById('mobile-buttons').addEventListener('click', ev => {
         const btn = ev.target.closest('button');
         if (!btn) return;
         const action = btn.dataset.action;
         if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, true);
-        // kurz drücken
         setTimeout(()=>{ if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, false); }, 150);
       });
     })();
