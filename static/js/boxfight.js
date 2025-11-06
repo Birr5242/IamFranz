@@ -137,7 +137,7 @@ function loop() {
   if (!running) return;
   update();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(images.hintergrund, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
   ctx.drawImage(getPlayerFrame(), player.x, player.y, player.w, player.h);
   ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.w, enemy.h);
   requestAnimationFrame(loop);
