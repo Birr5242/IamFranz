@@ -1,74 +1,56 @@
 // static/js/boxfight.js
 console.log("Boxfight System aktiv.");
 
-/*
-  Dieses Skript entspricht dem System in hobbys.html:
-  - BoxFightInit(images)   → Bilder werden bereitgestellt
-  - BoxFightStart()        → Spiel starten
-  - BoxFightRestart()      → Neustart-Button
-  - BoxFightMobileAction() → Mobile Buttons
-*/
-
-/* Canvas & Kontext */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-/* Steuerung */
 const keys = { left: false, right: false, jump: false, attack: false };
 let mobile = { left: false, right: false, jump: false, attack: false };
 
-/* Spieler & Gegner */
 let player, enemy;
 let images = {};
 let running = false;
-let difficulty = 0.8; // Standard Mittel
+let difficulty = 0.8;
 
-/* Animation */
 let frameTimer = 0;
 let frameIndex = 0;
 
-/* Wird von hobbys.html nach Asset-Load aufgerufen */
 function BoxFightInit(loadedImages) {
   images = loadedImages;
   console.log("Bilder übertragen:", images);
 }
 
-/* Neue Runde vorbereiten */
 function setupCharacters() {
   player = { x: 120, y: 280, w: 96, h: 96, hp: 100, vy: 0, jumping: false, speed: 2 };
   enemy  = { x: 600, y: 280, w: 96, h: 96, hp: 100, vy: 0, jumping: false, speed: 1.2 * difficulty };
 }
 
-/* Steuerung Tasten */
 window.addEventListener("keydown", e => {
   if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = true;
   if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = true;
   if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = true;
-  if (e.code === "Space") keys.attack = true;
+  if (e.code === "KeyK") keys.attack = true;
 });
 
 window.addEventListener("keyup", e => {
   if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = false;
   if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
   if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = false;
-  if (e.code === "Space") keys.attack = false;
+  if (e.code === "KeyK") keys.attack = false;
 });
 
-/* Mobile Steuerung */
 function BoxFightMobileAction(action, state) {
-  mobile[action] = state;
+  if (action === "punch") mobile.attack = state;
+  else mobile[action] = state;
 }
 
-/* HUD Aktualisieren */
 function updateHUD() {
   document.getElementById("player-health").style.width = player.hp + "%";
   document.getElementById("enemy-health").style.width = enemy.hp + "%";
 }
 
-/* Bewegungslogik */
 function update() {
-
   const moveLeft = keys.left || mobile.left;
   const moveRight = keys.right || mobile.right;
   const jump = keys.jump || mobile.jump;
@@ -106,8 +88,17 @@ function update() {
   }
 }
 
-/* Animationsframe bestimmen */
 function getPlayerFrame() {
+  const punching = keys.attack || mobile.attack;
+
+  if (punching) {
+    frameTimer++;
+    if (frameTimer > 10) {
+      frameIndex = (frameIndex + 1) % 2;
+      frameTimer = 0;
+    }
+    return frameIndex === 0 ? images.player_punch_1 : images.player_punch_2;
+  }
 
   if (player.jumping) {
     if (player.vy < -2) return images.player_jump_1;
@@ -132,7 +123,6 @@ function getPlayerFrame() {
   return frameIndex === 0 ? images.player_idle_1 : images.player_idle_2;
 }
 
-/* Rendering */
 function loop() {
   if (!running) return;
   update();
@@ -143,7 +133,6 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-/* wird vom Start Button in hobbys.html ausgelöst */
 function BoxFightStart() {
   difficulty = parseFloat(document.getElementById("difficulty").value);
   setupCharacters();
@@ -151,12 +140,10 @@ function BoxFightStart() {
   loop();
 }
 
-/* Neustart */
 function BoxFightRestart() {
   BoxFightStart();
 }
 
-/* Bereitstellen */
 window.BoxFightInit = BoxFightInit;
 window.BoxFightStart = BoxFightStart;
 window.BoxFightRestart = BoxFightRestart;
