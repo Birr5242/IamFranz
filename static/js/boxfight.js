@@ -1,4 +1,3 @@
-// static/js/boxfight.js
 console.log("Boxfight System aktiv.");
 
 (function(){
@@ -23,6 +22,9 @@ console.log("Boxfight System aktiv.");
   let countdown = 3;
   let countdownRunning = false;
 
+  // Punch Trigger (nur beim neuen Drücken)
+  let punchTriggered = false;
+
   function BoxFightInit(loadedImages) {
     images = loadedImages || window.PRELOADED_ASSETS || {};
     console.log("Bilder übertragen:", images);
@@ -34,11 +36,13 @@ console.log("Boxfight System aktiv.");
   }
 
   window.addEventListener("keydown", e => {
-    if (countdownRunning) return; // während Countdown keine Bewegung
+    if (countdownRunning) return;
     if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = true;
     if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = true;
     if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = true;
-    if (e.code === "KeyK") keys.attack = true;
+    if (e.code === "KeyK") {
+      if (!punchTriggered) { keys.attack = true; punchTriggered = true; }
+    }
   });
 
   window.addEventListener("keyup", e => {
@@ -46,13 +50,15 @@ console.log("Boxfight System aktiv.");
     if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = false;
     if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
     if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = false;
-    if (e.code === "KeyK") keys.attack = false;
+    if (e.code === "KeyK") { keys.attack = false; punchTriggered = false; }
   });
 
   function BoxFightMobileAction(action, state) {
     if (countdownRunning) return;
-    if (action === "punch") mobile.attack = state;
-    else if (mobile.hasOwnProperty(action)) mobile[action] = state;
+    if (action === "punch") {
+      if (state && !punchTriggered) { mobile.attack = true; punchTriggered = true; }
+      if (!state) { mobile.attack = false; punchTriggered = false; }
+    } else if (mobile.hasOwnProperty(action)) mobile[action] = state;
   }
 
   function updateHUD() {
@@ -71,25 +77,29 @@ console.log("Boxfight System aktiv.");
     const jump = keys.jump || mobile.jump;
     const attack = keys.attack || mobile.attack;
 
+    // Bewegung nur, wenn Countdown vorbei
     if (moveLeft) player.x -= player.speed;
     if (moveRight) player.x += player.speed;
     player.x = Math.max(0, Math.min((canvas ? canvas.width : 900) - player.w, player.x));
 
+    // Springen langsamer
     if (jump && !player.jumping) {
-      player.vy = -11;
+      player.vy = -7; // weniger stark
       player.jumping = true;
     }
 
     player.y += player.vy;
-    player.vy += 0.5;
+    player.vy += 0.6; // etwas stärkerer Fall
     if (player.y >= 280) {
       player.y = 280;
       player.jumping = false;
       player.vy = 0;
     }
 
+    // Angriff nur in Reichweite
     if (attack && Math.abs(player.x - enemy.x) < 60) enemy.hp -= 0.4;
 
+    // Gegner KI
     if (enemy.x > player.x) enemy.x -= enemy.speed;
     else enemy.x += enemy.speed;
 
@@ -109,7 +119,7 @@ console.log("Boxfight System aktiv.");
     const moving = keys.left || keys.right || mobile.left || mobile.right;
     const jumping = player.jumping;
 
-    if (countdownRunning) currentAction = "idle"; // Idle während Countdown
+    if (countdownRunning) currentAction = "idle";
     else if (punching) currentAction = "punch";
     else if (jumping) currentAction = "jump";
     else if (moving) currentAction = "run";
@@ -200,7 +210,6 @@ console.log("Boxfight System aktiv.");
     startCountdown();
   }
 
-  // Expose functions globally
   window.BoxFightInit = BoxFightInit;
   window.BoxFightStart = BoxFightStart;
   window.BoxFightRestart = BoxFightRestart;
