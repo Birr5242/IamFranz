@@ -2,7 +2,6 @@
 console.log("Boxfight System aktiv.");
 
 (function(){
-  // Variablen werden später initialisiert
   let canvas = document.getElementById("game");
   let ctx = canvas ? canvas.getContext("2d") : null;
   if (ctx) ctx.imageSmoothingEnabled = false;
@@ -15,8 +14,14 @@ console.log("Boxfight System aktiv.");
   let running = false;
   let difficulty = 0.8;
 
-  let frameTimer = 0;
-  let frameIndex = 0;
+  // Animation-State
+  let lastAction = "idle"; // idle, run, jump, punch
+  let actionFrameIndex = 0;
+  let actionFrameTimer = 0;
+
+  // Countdown
+  let countdown = 3;
+  let countdownRunning = false;
 
   function BoxFightInit(loadedImages) {
     images = loadedImages || window.PRELOADED_ASSETS || {};
@@ -29,6 +34,7 @@ console.log("Boxfight System aktiv.");
   }
 
   window.addEventListener("keydown", e => {
+    if (countdownRunning) return; // während Countdown keine Bewegung
     if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = true;
     if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = true;
     if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = true;
@@ -36,6 +42,7 @@ console.log("Boxfight System aktiv.");
   });
 
   window.addEventListener("keyup", e => {
+    if (countdownRunning) return;
     if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = false;
     if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
     if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = false;
@@ -43,6 +50,7 @@ console.log("Boxfight System aktiv.");
   });
 
   function BoxFightMobileAction(action, state) {
+    if (countdownRunning) return;
     if (action === "punch") mobile.attack = state;
     else if (mobile.hasOwnProperty(action)) mobile[action] = state;
   }
@@ -56,6 +64,7 @@ console.log("Boxfight System aktiv.");
 
   function update() {
     if (!player || !enemy) return;
+    if (!running) return;
 
     const moveLeft = keys.left || mobile.left;
     const moveRight = keys.right || mobile.right;
@@ -95,38 +104,39 @@ console.log("Boxfight System aktiv.");
   }
 
   function getPlayerFrame() {
+    let currentAction = "idle";
     const punching = keys.attack || mobile.attack;
+    const moving = keys.left || keys.right || mobile.left || mobile.right;
+    const jumping = player.jumping;
 
-    if (punching) {
-      frameTimer++;
-      if (frameTimer > 10) {
-        frameIndex = (frameIndex + 1) % 2;
-        frameTimer = 0;
-      }
-      return frameIndex === 0 ? images.player_punch_1 : images.player_punch_2;
+    if (countdownRunning) currentAction = "idle"; // Idle während Countdown
+    else if (punching) currentAction = "punch";
+    else if (jumping) currentAction = "jump";
+    else if (moving) currentAction = "run";
+
+    if (currentAction !== lastAction) {
+      actionFrameIndex = 0;
+      actionFrameTimer = 0;
+      lastAction = currentAction;
     }
 
-    if (player.jumping) {
-      if (player.vy < -2) return images.player_jump_1;
-      if (player.vy > 2) return images.player_jump_3;
-      return images.player_jump_2;
-    }
+    actionFrameTimer++;
 
-    if (keys.left || keys.right || mobile.left || mobile.right) {
-      frameTimer++;
-      if (frameTimer > 12) {
-        frameIndex = (frameIndex + 1) % 2;
-        frameTimer = 0;
-      }
-      return frameIndex === 0 ? images.player_run_1 : images.player_run_2;
+    switch(currentAction) {
+      case "punch":
+        if (actionFrameTimer > 10) { actionFrameIndex = (actionFrameIndex + 1) % 2; actionFrameTimer = 0; }
+        return actionFrameIndex === 0 ? images.player_punch_1 : images.player_punch_2;
+      case "jump":
+        if (player.vy < -2) return images.player_jump_1;
+        if (player.vy > 2) return images.player_jump_3;
+        return images.player_jump_2;
+      case "run":
+        if (actionFrameTimer > 12) { actionFrameIndex = (actionFrameIndex + 1) % 2; actionFrameTimer = 0; }
+        return actionFrameIndex === 0 ? images.player_run_1 : images.player_run_2;
+      default: // idle
+        if (actionFrameTimer > 18) { actionFrameIndex = (actionFrameIndex + 1) % 2; actionFrameTimer = 0; }
+        return actionFrameIndex === 0 ? images.player_idle_1 : images.player_idle_2;
     }
-
-    frameTimer++;
-    if (frameTimer > 18) {
-      frameIndex = (frameIndex + 1) % 2;
-      frameTimer = 0;
-    }
-    return frameIndex === 0 ? images.player_idle_1 : images.player_idle_2;
   }
 
   function loop() {
@@ -142,22 +152,52 @@ console.log("Boxfight System aktiv.");
     requestAnimationFrame(loop);
   }
 
+  function drawCountdown() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (images.bg) ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.font = "80px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(countdown > 0 ? countdown : "FIGHT!", canvas.width / 2, canvas.height / 2);
+
+    // idle Figur während Countdown
+    const pf = getPlayerFrame();
+    if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
+    if (images.enemy) ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.w, enemy.h);
+
+    if (countdown <= 0) {
+      countdownRunning = false;
+      running = true;
+      loop();
+    }
+  }
+
+  function startCountdown() {
+    countdown = 3;
+    countdownRunning = true;
+    running = false;
+    const interval = setInterval(() => {
+      countdown--;
+      drawCountdown();
+      if (countdown < 0) clearInterval(interval);
+    }, 1000);
+  }
+
   function BoxFightStart() {
     const diffElem = document.getElementById("difficulty");
     difficulty = diffElem ? parseFloat(diffElem.value) : 0.8;
     setupCharacters();
-    running = true;
-    loop();
+    startCountdown();
   }
 
   function BoxFightRestart() {
     setupCharacters();
-    // reset HP
     if (player) player.hp = 100;
     if (enemy) enemy.hp = 100;
     updateHUD();
-    running = true;
-    loop();
+    startCountdown();
   }
 
   // Expose functions globally
@@ -166,6 +206,6 @@ console.log("Boxfight System aktiv.");
   window.BoxFightRestart = BoxFightRestart;
   window.BoxFightMobileAction = BoxFightMobileAction;
 
-  // If PRELOADED_ASSETS already present, initialize
   if (window.PRELOADED_ASSETS) BoxFightInit(window.PRELOADED_ASSETS);
+
 })();
