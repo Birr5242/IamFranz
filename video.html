@@ -12,13 +12,27 @@
     <a href="lebenslauf.html">Lebenslauf</a>
     <a href="hobbys.html">Hobbys</a>
     <a href="kontakt.html">Kontakt</a>
-    <a href="video.html">Video</a>
+    <a href="video.html" aria-current="page">Video</a>
   </nav>
+
   <main>
     <h1>Mein Vorstellungsvideo</h1>
     <p>Hier kannst du später ein kurzes Video über mich einfügen.</p>
-    <!-- Bitte VIDEO_ID durch die tatsächliche ID ersetzen oder ein lokales Video verwenden -->
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen title="Vorstellungsvideo"></iframe>
+
+    <!-- Wenn du ein lokales Video verwenden willst: -->
+    <!-- <video controls width="720">
+         <source src="img/MeinVideo.mp4" type="video/mp4">
+         Dein Browser unterstützt das Video-Tag nicht.
+       </video>
+    -->
+
+    <!-- YouTube-Embed: VIDEO_ID ersetzen -->
+    <iframe width="560" height="315"
+            src="https://www.youtube.com/embed/VIDEO_ID"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            title="Vorstellungsvideo"></iframe>
   </main>
 </body>
 </html>
