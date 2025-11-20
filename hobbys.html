@@ -77,27 +77,27 @@
   <!-- Asset-Preloader und Start-Integration -->
   <script>
     const ASSETS = {
-      bg: 'images/hintergrund.png',
+      bg: 'img/hintergrund.png',
 
       // Idle
-      player_idle_1: 'images/Boxanimation1-1.png',
-      player_idle_2: 'images/Boxanimation1-2.png',
+      player_idle_1: 'img/Boxanimation1-1.png',
+      player_idle_2: 'img/Boxanimation1-2.png',
 
       // Lauf
-      player_run_1: 'images/Laufanimation1-1.png',
-      player_run_2: 'images/Laufanimation1-2.png',
+      player_run_1: 'img/Laufanimation1-1.png',
+      player_run_2: 'img/Laufanimation1-2.png',
 
       // Sprung
-      player_jump_1: 'images/Spring-1.png',
-      player_jump_2: 'images/Spring-2.png',
-      player_jump_3: 'images/Spring-3.png',
+      player_jump_1: 'img/Spring-1.png',
+      player_jump_2: 'img/Spring-2.png',
+      player_jump_3: 'img/Spring-3.png',
 
       // Schlag
-      player_punch_1: 'images/Schlag-1.png',
-      player_punch_2: 'images/Schlag-2.png',
+      player_punch_1: 'img/Schlag-1.png',
+      player_punch_2: 'img/Schlag-2.png',
 
       // Gegner
-      enemy: 'images/fighter.png'
+      enemy: 'img/fighter.png'
     };
 
     function preloadImages(list) {
@@ -130,7 +130,7 @@
 
       preloadImages(ASSETS).then(({images, failed}) => {
         if (failed > 0) {
-          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im images-Ordner.');
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im img-Ordner.');
         } else {
           console.log('Alle Assets geladen.');
         }
