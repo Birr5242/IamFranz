@@ -46,16 +46,16 @@
           <strong>Mobile:</strong> Nutze die Buttons unten.
         </div>
 
-        <div class="mobile-buttons" id="mobile-buttons">
-          <button class="btn move" data-action="left">◀</button>
-          <button class="btn move" data-action="right">▶</button>
-          <button class="btn action" data-action="jump">↑</button>
-          <button class="btn action" data-action="punch">Schlag</button>
+        <div class="mobile-buttons" id="mobile-buttons" aria-hidden="false">
+          <button class="btn move" data-action="left" aria-label="links">◀</button>
+          <button class="btn move" data-action="right" aria-label="rechts">▶</button>
+          <button class="btn action" data-action="jump" aria-label="springen">↑</button>
+          <button class="btn action" data-action="punch" aria-label="schlagen">Schlag</button>
         </div>
 
         <div class="actions">
           <button id="restart">Neustart</button>
-          <label>
+          <label for="difficulty">
             KI-Schwierigkeit:
             <select id="difficulty">
               <option value="0.6">Leicht</option>
@@ -77,27 +77,27 @@
   <!-- Asset-Preloader und Start-Integration -->
   <script>
     const ASSETS = {
-      bg: 'img/hintergrund.png',
+      bg: 'images/hintergrund.png',
 
       // Idle
-      player_idle_1: 'img/Boxanimation1-1.png',
-      player_idle_2: 'img/Boxanimation1-2.png',
+      player_idle_1: 'images/Boxanimation1-1.png',
+      player_idle_2: 'images/Boxanimation1-2.png',
 
       // Lauf
-      player_run_1: 'img/Laufanimation1-1.png',
-      player_run_2: 'img/Laufanimation1-2.png',
+      player_run_1: 'images/Laufanimation1-1.png',
+      player_run_2: 'images/Laufanimation1-2.png',
 
       // Sprung
-      player_jump_1: 'img/Spring-1.png',
-      player_jump_2: 'img/Spring-2.png',
-      player_jump_3: 'img/Spring-3.png',
+      player_jump_1: 'images/Spring-1.png',
+      player_jump_2: 'images/Spring-2.png',
+      player_jump_3: 'images/Spring-3.png',
 
       // Schlag
-      player_punch_1: 'img/Schlag-1.png',
-      player_punch_2: 'img/Schlag-2.png',
+      player_punch_1: 'images/Schlag-1.png',
+      player_punch_2: 'images/Schlag-2.png',
 
       // Gegner
-      enemy: 'img/fighter.png'
+      enemy: 'images/fighter.png'
     };
 
     function preloadImages(list) {
@@ -106,7 +106,7 @@
       let loaded = 0, failed = 0;
 
       return new Promise(resolve => {
-        if (keys.length === 0) return resolve(images);
+        if (keys.length === 0) return resolve({images, failed});
         keys.forEach(key => {
           const img = new Image();
           img.src = list[key];
@@ -130,8 +130,10 @@
 
       preloadImages(ASSETS).then(({images, failed}) => {
         if (failed > 0) {
-          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade in hobbys.html und den img-Ordner.');
-        } else console.log('Alle Assets geladen.');
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im images-Ordner.');
+        } else {
+          console.log('Alle Assets geladen.');
+        }
         window.PRELOADED_ASSETS = images;
         if (typeof BoxFightInit === 'function') BoxFightInit(images);
         startBtn.disabled = false;
