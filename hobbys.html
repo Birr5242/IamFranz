@@ -77,9 +77,8 @@
       // Hintergrund
       bg: "img/hintergrund.png",
 
-      // Idle
-      player_idle_1: "img/Boxanimation1-1.png",
-      player_idle_2: "img/Boxanimation1-2.png",
+      // Stehendes Idle
+      stand: "img/stand.png",
 
       // Lauf
       player_run_1: "img/Laufanimation1-1.png",
@@ -90,14 +89,14 @@
       player_jump_2: "img/Spring-2.png",
       player_jump_3: "img/Spring-3.png",
 
-      // Schlag (du hast keine separaten Schlag-Bilder, wir verwenden Boxanimation1-1/2)
+      // Schlag
       player_punch_1: "img/Boxanimation1-1.png",
       player_punch_2: "img/Boxanimation1-2.png",
 
       // Gegner
       enemy: "img/fighter.png",
 
-      // Sound (dein einziger Song)
+      // Sound
       bg_music: "sounds/BeepBox-Song.mp3"
     };
 
@@ -126,7 +125,6 @@
         if (failed > 0) {
           console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im img-Ordner.');
         }
-        // übergebe Bilder und ASSETS getrennt an das Spiel
         if (typeof BoxFightInit === 'function') BoxFightInit(images, ASSETS);
         startBtn.disabled = false;
         startBtn.textContent = 'Start';
