@@ -2,241 +2,168 @@ console.log("Boxfight System aktiv.");
 
 (function(){
   let canvas = document.getElementById("game");
-  let ctx = canvas ? canvas.getContext("2d") : null;
-  if (ctx) ctx.imageSmoothingEnabled = false;
+  let ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  let images = {};
+  let player, enemy;
+  let running = false;
 
   const keys = { left: false, right: false, jump: false, attack: false };
-  let mobile = { left: false, right: false, jump: false, attack: false };
+  const mobile = { left: false, right: false, jump: false, attack: false };
 
-  let player, enemy;
-  let images = {};
-  let running = false;
-  let difficulty = 0.8;
+  // 🔊 Sound
+  let bgMusic = null;
+  let punchSound = null;
 
-  // Animation-State
-  let lastAction = "idle"; // idle, run, jump, punch
-  let actionFrameIndex = 0;
-  let actionFrameTimer = 0;
+  // Animation
+  let lastAction = "idle";
+  let frameIndex = 0;
+  let frameTimer = 0;
+  let punchAnimating = false;
 
-  // Countdown
-  let countdown = 3;
-  let countdownRunning = false;
+  function BoxFightInit(assets) {
+    images = assets;
 
-  // Punch Trigger (nur bei neuem Tastendruck)
-  let punchTriggered = false;
-  let punchPlaying = false; // Flag, dass Animation noch läuft
-
-  // Anti-Bunnyhop
-  let jumpCooldown = false;
-
-  function BoxFightInit(loadedImages) {
-    images = loadedImages || window.PRELOADED_ASSETS || {};
-    console.log("Bilder übertragen:", images);
+    // --- Sound laden ---
+    punchSound = new Audio(assets.punch_sound);
+    bgMusic = new Audio(assets.bg_music);
+    bgMusic.loop = true;
   }
 
   function setupCharacters() {
-    player = { x: 120, y: 280, w: 96, h: 96, hp: 100, vy: 0, jumping: false, speed: 2 };
-    enemy  = { x: 600, y: 280, w: 96, h: 96, hp: 100, vy: 0, jumping: false, speed: 1.2 * difficulty };
+    player = { x:120, y:280, w:96, h:96, hp:100, vy:0, jumping:false, speed:2 };
+    enemy  = { x:600, y:280, w:96, h:96, hp:100, vy:0, jumping:false, speed:1.5 };
   }
 
+  window.BoxFightStart = function() {
+    setupCharacters();
+    running = true;
+
+    // 🔊 Musik starten
+    bgMusic.volume = 0.4;
+    bgMusic.play().catch(()=>{ console.log("Autoplay blockiert") });
+
+    loop();
+  };
+
+  window.BoxFightRestart = function() {
+    setupCharacters();
+  };
+
+  window.BoxFightMobileAction = function(action, state) {
+    mobile[action] = state;
+  };
+
   window.addEventListener("keydown", e => {
-    if (countdownRunning) return;
-    if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = true;
-    if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = true;
-    if (e.code === "KeyW" || e.code === "ArrowUp") {
-      if (!player.jumping && !jumpCooldown) {
-        keys.jump = true;
-        jumpCooldown = true;
-      }
+    if (e.code === "KeyA") keys.left = true;
+    if (e.code === "KeyD") keys.right = true;
+    if (e.code === "KeyW" && !player.jumping) {
+      keys.jump = true;
+      player.vy = -10;
+      player.jumping = true;
     }
-    if (e.code === "KeyK") {
-      if (!punchTriggered && !punchPlaying) {
-        keys.attack = true;
-        punchTriggered = true;
-      }
-    }
+    if (e.code === "KeyK") keys.attack = true;
   });
 
   window.addEventListener("keyup", e => {
-    if (countdownRunning) return;
-    if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = false;
-    if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
-    if (e.code === "KeyW" || e.code === "ArrowUp") keys.jump = false;
-    if (e.code === "KeyK") { punchTriggered = false; }
+    if (e.code === "KeyA") keys.left = false;
+    if (e.code === "KeyD") keys.right = false;
+    if (e.code === "KeyW") keys.jump = false;
+    if (e.code === "KeyK") keys.attack = false;
   });
 
-  function BoxFightMobileAction(action, state) {
-    if (countdownRunning) return;
-    if (action === "punch") {
-      if (state && !punchTriggered && !punchPlaying) { mobile.attack = true; punchTriggered = true; }
-      if (!state) { mobile.attack = false; punchTriggered = false; }
-    } else if (mobile.hasOwnProperty(action)) mobile[action] = state;
-  }
-
-  function updateHUD() {
-    const ph = document.getElementById("player-health");
-    const eh = document.getElementById("enemy-health");
-    if (ph) ph.style.width = Math.max(0, Math.min(100, player.hp)) + "%";
-    if (eh) eh.style.width = Math.max(0, Math.min(100, enemy.hp)) + "%";
-  }
-
   function update() {
-    if (!player || !enemy) return;
     if (!running) return;
 
-    const moveLeft = keys.left || mobile.left;
+    const moveLeft  = keys.left  || mobile.left;
     const moveRight = keys.right || mobile.right;
-    const jump = keys.jump || mobile.jump;
-    const attack = (keys.attack || mobile.attack) && !punchPlaying;
+    const jump      = keys.jump  || mobile.jump;
+    const punch     = keys.attack || mobile.attack;
 
-    // Bewegung
-    if (moveLeft) player.x -= player.speed;
+    if (moveLeft)  player.x -= player.speed;
     if (moveRight) player.x += player.speed;
-    player.x = Math.max(0, Math.min((canvas ? canvas.width : 900) - player.w, player.x));
 
-    // Springen
-    if (jump && !player.jumping) {
-      player.vy = -11;
-      player.jumping = true;
-      keys.jump = false;
-    }
+    // Grenzen
+    player.x = Math.max(0, Math.min(900 - player.w, player.x));
 
+    // Gravitation
     player.y += player.vy;
     player.vy += 0.6;
 
     if (player.y >= 280) {
       player.y = 280;
       player.jumping = false;
-      player.vy = 0;
-      jumpCooldown = false;
     }
 
-    // Angriff nur in Reichweite
-    if (attack && Math.abs(player.x - enemy.x) < 60) {
-      enemy.hp -= 0.4;
-      punchPlaying = true; // Animation startet
-      keys.attack = false;
-      mobile.attack = false;
+    // Angriff
+    if (punch && !punchAnimating) {
+      if (Math.abs(player.x - enemy.x) < 60) {
+        enemy.hp -= 0.5;
+        punchSound.currentTime = 0;
+        punchSound.play();
+      }
+      punchAnimating = true;
+      setTimeout(()=> punchAnimating=false, 200);
     }
 
-    // Gegner KI
+    // Gegner
     if (enemy.x > player.x) enemy.x -= enemy.speed;
-    else enemy.x += enemy.speed;
+    if (enemy.x < player.x) enemy.x += enemy.speed;
 
-    if (Math.abs(player.x - enemy.x) < 55) player.hp -= 0.25;
+    if (Math.abs(player.x - enemy.x) < 55) {
+      player.hp -= 0.2;
+    }
 
-    updateHUD();
-
-    if (player.hp <= 0 || enemy.hp <= 0) {
+    if (enemy.hp <= 0 || player.hp <= 0) {
       running = false;
-      alert(player.hp <= 0 ? "Gegner gewinnt!" : "Du gewinnst!");
+      alert(enemy.hp <= 0 ? "Du gewinnst!" : "Gegner gewinnt!");
     }
   }
 
   function getPlayerFrame() {
-    let currentAction = "idle";
     const moving = keys.left || keys.right || mobile.left || mobile.right;
-    const jumping = player.jumping;
 
-    if (countdownRunning) currentAction = "idle";
-    else if (punchPlaying) currentAction = "punch";
-    else if (jumping) currentAction = "jump";
-    else if (moving) currentAction = "run";
+    let action = "idle";
+    if (punchAnimating) action = "punch";
+    else if (player.jumping) action = "jump";
+    else if (moving) action = "run";
 
-    if (currentAction !== lastAction) {
-      actionFrameIndex = 0;
-      actionFrameTimer = 0;
-      lastAction = currentAction;
+    if (action !== lastAction) { frameIndex = 0; frameTimer = 0; lastAction = action; }
+
+    frameTimer++;
+    if (frameTimer > 10) {
+      frameTimer = 0;
+      frameIndex = (frameIndex + 1) % 2;
     }
 
-    actionFrameTimer++;
-
-    switch(currentAction) {
-      case "punch":
-        if (actionFrameTimer > 12) {
-          actionFrameIndex = (actionFrameIndex + 1) % 2;
-          actionFrameTimer = 0;
-          if (actionFrameIndex === 1) punchPlaying = false; // Animation fertig
-        }
-        return actionFrameIndex === 0 ? images.player_punch_1 : images.player_punch_2;
+    switch(action) {
+      case "idle": return images["player_idle_" + (frameIndex+1)];
+      case "run":  return images["player_run_" + (frameIndex+1)];
+      case "punch":return images["player_punch_" + (frameIndex+1)];
       case "jump":
-        if (player.vy < -2) return images.player_jump_1;
-        if (player.vy > 2) return images.player_jump_3;
+        if (player.vy < -3) return images.player_jump_1;
+        if (player.vy > 3)  return images.player_jump_3;
         return images.player_jump_2;
-      case "run":
-        if (actionFrameTimer > 12) { actionFrameIndex = (actionFrameIndex + 1) % 2; actionFrameTimer = 0; }
-        return actionFrameIndex === 0 ? images.player_run_1 : images.player_run_2;
-      default: // idle
-        if (actionFrameTimer > 18) { actionFrameIndex = (actionFrameIndex + 1) % 2; actionFrameTimer = 0; }
-        return actionFrameIndex === 0 ? images.player_idle_1 : images.player_idle_2;
     }
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,900,420);
+
+    ctx.drawImage(images.bg,0,0,900,420);
+
+    ctx.drawImage(getPlayerFrame(), player.x, player.y, player.w, player.h);
+    ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.w, enemy.h);
+
+    // HP-Balken
+    document.getElementById("player-health").style.width = player.hp + "%";
+    document.getElementById("enemy-health").style.width = enemy.hp + "%";
   }
 
   function loop() {
-    if (!running) return;
     update();
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (images.bg) ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
-      const pf = getPlayerFrame();
-      if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
-      if (images.enemy) ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.w, enemy.h);
-    }
-    requestAnimationFrame(loop);
+    draw();
+    if (running) requestAnimationFrame(loop);
   }
-
-  function drawCountdown() {
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (images.bg) ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "white";
-    ctx.font = "80px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(countdown > 0 ? countdown : "FIGHT!", canvas.width / 2, canvas.height / 2);
-
-    const pf = getPlayerFrame();
-    if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
-    if (images.enemy) ctx.drawImage(images.enemy, enemy.x, enemy.y, enemy.w, enemy.h);
-
-    if (countdown <= 0) {
-      countdownRunning = false;
-      running = true;
-      loop();
-    }
-  }
-
-  function startCountdown() {
-    countdown = 3;
-    countdownRunning = true;
-    running = false;
-    const interval = setInterval(() => {
-      countdown--;
-      drawCountdown();
-      if (countdown < 0) clearInterval(interval);
-    }, 1000);
-  }
-
-  function BoxFightStart() {
-    const diffElem = document.getElementById("difficulty");
-    difficulty = diffElem ? parseFloat(diffElem.value) : 0.8;
-    setupCharacters();
-    startCountdown();
-  }
-
-  function BoxFightRestart() {
-    setupCharacters();
-    if (player) player.hp = 100;
-    if (enemy) enemy.hp = 100;
-    updateHUD();
-    startCountdown();
-  }
-
-  window.BoxFightInit = BoxFightInit;
-  window.BoxFightStart = BoxFightStart;
-  window.BoxFightRestart = BoxFightRestart;
-  window.BoxFightMobileAction = BoxFightMobileAction;
-
-  if (window.PRELOADED_ASSETS) BoxFightInit(window.PRELOADED_ASSETS);
-
 })();
