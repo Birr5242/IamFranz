@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <canvas id="game" width="900" height="420"></canvas>
+      <canvas id="game" width="900" height="420" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
 
       <div class="controls">
         <div class="instructions">
@@ -44,21 +44,34 @@
         </div>
 
         <div class="mobile-buttons" id="mobile-buttons">
-          <button class="btn" data-action="left">◀</button>
-          <button class="btn" data-action="right">▶</button>
-          <button class="btn" data-action="jump">↑</button>
-          <button class="btn" data-action="punch">Schlag</button>
+          <button class="btn" data-action="left" aria-label="links">◀</button>
+          <button class="btn" data-action="right" aria-label="rechts">▶</button>
+          <button class="btn" data-action="jump" aria-label="springen">↑</button>
+          <button class="btn" data-action="punch" aria-label="schlagen">Schlag</button>
         </div>
 
-        <button id="restart">Neustart</button>
+        <div class="actions">
+          <button id="restart">Neustart</button>
+          <label for="difficulty">
+            KI-Schwierigkeit:
+            <select id="difficulty">
+              <option value="0.6">Leicht</option>
+              <option value="0.8" selected>Mittel</option>
+              <option value="1.0">Schwer</option>
+            </select>
+          </label>
+        </div>
       </div>
 
-      <div id="message" class="message"></div>
+      <div id="message" class="message" aria-live="polite"></div>
+      <p class="footnote">Kleine Demo: Änderungen am Balancing, Grafiken oder Sound sind leicht möglich.</p>
     </section>
   </main>
 
+  <!-- Spiel-Logik -->
   <script src="static/js/boxfight.js"></script>
 
+  <!-- Asset-Preloader und Start-Integration -->
   <script>
     const ASSETS = {
       // Hintergrund
@@ -77,20 +90,19 @@
       player_jump_2: "img/Spring-2.png",
       player_jump_3: "img/Spring-3.png",
 
-      // Schlag
-      player_punch_1: "img/Schlag-1.png",
-      player_punch_2: "img/Schlag-2.png",
+      // Schlag (du hast keine separaten Schlag-Bilder, wir verwenden Boxanimation1-1/2)
+      player_punch_1: "img/Boxanimation1-1.png",
+      player_punch_2: "img/Boxanimation1-2.png",
 
       // Gegner
       enemy: "img/fighter.png",
 
-      // 🔊 Sound
-      punch_sound: "sound/hit.mp3",
-      bg_music: "sound/music.mp3"
+      // Sound (dein einziger Song)
+      bg_music: "sounds/BeepBox-Song.mp3"
     };
 
     function preloadImages(list) {
-      const keys = Object.keys(list).filter(k => !k.includes("sound"));
+      const keys = Object.keys(list).filter(k => !k.toLowerCase().includes("music") && !k.toLowerCase().includes("bg_music"));
       const images = {};
       let loaded = 0, failed = 0;
 
@@ -100,38 +112,43 @@
           const img = new Image();
           img.src = list[key];
           img.onload = () => { images[key] = img; loaded++; check(); };
-          img.onerror = () => { failed++; console.error("Fehler:", list[key]); check(); };
+          img.onerror = () => { failed++; console.error("Fehler beim Laden:", list[key]); check(); };
         });
         function check() { if (loaded + failed === keys.length) resolve({images, failed}); }
       });
     }
 
     (function () {
-      const startBtn = document.getElementById("startButton");
-      const gameSection = document.getElementById("gameSection");
+      const startBtn = document.getElementById('startButton');
+      const gameSection = document.getElementById('gameSection');
 
-      preloadImages(ASSETS).then(({images}) => {
-        window.PRELOADED_ASSETS = { ...images, ...ASSETS };
-        BoxFightInit(window.PRELOADED_ASSETS);
-
+      preloadImages(ASSETS).then(({images, failed}) => {
+        if (failed > 0) {
+          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im img-Ordner.');
+        }
+        // übergebe Bilder und ASSETS getrennt an das Spiel
+        if (typeof BoxFightInit === 'function') BoxFightInit(images, ASSETS);
         startBtn.disabled = false;
-        startBtn.textContent = "Start";
+        startBtn.textContent = 'Start';
       });
 
-      startBtn.addEventListener("click", () => {
-        gameSection.style.display = "block";
-        BoxFightStart();
+      startBtn.addEventListener('click', function () {
+        gameSection.style.display = 'block';
+        const canvas = document.getElementById('game');
+        if (canvas && canvas.focus) canvas.focus();
+        if (typeof BoxFightStart === 'function') BoxFightStart();
       });
 
-      document.getElementById("restart").addEventListener("click", () => {
-        BoxFightRestart();
+      document.getElementById('restart').addEventListener('click', () => {
+        if (typeof BoxFightRestart === 'function') BoxFightRestart();
       });
 
-      document.getElementById("mobile-buttons").addEventListener("click", ev => {
-        const btn = ev.target.closest("button");
+      document.getElementById('mobile-buttons').addEventListener('click', ev => {
+        const btn = ev.target.closest('button');
         if (!btn) return;
-        BoxFightMobileAction(btn.dataset.action, true);
-        setTimeout(() => BoxFightMobileAction(btn.dataset.action, false), 150);
+        const action = btn.dataset.action;
+        if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, true);
+        setTimeout(()=>{ if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, false); }, 150);
       });
     })();
   </script>
