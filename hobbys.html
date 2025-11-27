@@ -77,76 +77,102 @@
       // Hintergrund
       bg: "img/hintergrund.png",
 
-      // Stehendes Idle
-      stand: "img/stand.png",
+      // Spieler Stehendes Idle
+      stand: "img/Blaustand.png",
+      stand_back: "img/Standrückwärts.png",
 
-      // Lauf
-      player_run_1: "img/Laufanimation1-1.png",
-      player_run_2: "img/Laufanimation1-2.png",
+      // Spieler Lauf
+      player_run_1: "img/Laufanimationblau-1.png",
+      player_run_2: "img/Laufanimationblau-2.png",
+      player_run_1_back: "img/Laufanimationrückwärts1.png",
+      player_run_2_back: "img/Laufanimationrückwärts2.png",
 
-      // Sprung
-      player_jump_1: "img/Spring-1.png",
-      player_jump_2: "img/Spring-2.png",
-      player_jump_3: "img/Spring-3.png",
+      // Spieler Sprung
+      player_jump_1: "img/Springblau-1.png.png",
+      player_jump_2: "img/Springblau-2.png.png",
+      player_jump_3: "img/Springblau-3.png.png",
+      player_jump_1_back: "img/Springrückwärts-1.png",
+      player_jump_2_back: "img/Springrückwärts-2.png",
+      player_jump_3_back: "img/Springrückwärts-3.png",
 
-      // Schlag
-      player_punch_1: "img/Boxanimation1-1.png",
-      player_punch_2: "img/Boxanimation1-2.png",
+      // Spieler Schlag
+      player_punch_1: "img/Blaubox-1.png",
+      player_punch_2: "img/Blaubox-2.png",
+      player_punch_1_back: "img/Boxanimationrückwärts-1.png",
+      player_punch_2_back: "img/Boxanimationrückwärts-2.png",
 
-      // Gegner
-      enemy: "img/fighter.png",
+      // Gegner KI Stehendes Idle
+      enemy_stand: "img/Blaustand.png",
+      enemy_stand_back: "img/Standblaurückwärts.png",
 
-      // Sound
+      // Gegner KI Lauf
+      enemy_run_1: "img/Laufanimationblau-1.png",
+      enemy_run_2: "img/Laufanimationblau-2.png",
+      enemy_run_1_back: "img/Laufanimationblaurückwärts1.png",
+      enemy_run_2_back: "img/Laufanimationblaurückwärts2.png",
+
+      // Gegner KI Sprung
+      enemy_jump_1: "img/Springblau-1.png.png",
+      enemy_jump_2: "img/Springblau-2.png.png",
+      enemy_jump_3: "img/Springblau-3.png.png",
+      enemy_jump_1_back: "img/Springblaurückwärts-1.png",
+      enemy_jump_2_back: "img/Springblaurückwärts-2.png",
+      enemy_jump_3_back: "img/Springblaurückwärts-3.png",
+
+      // Gegner KI Schlag
+      enemy_punch_1: "img/Blaubox-1.png",
+      enemy_punch_2: "img/Blaubox-2.png",
+      enemy_punch_1_back: "img/Boxanimationblaurückwärts-1.png",
+      enemy_punch_2_back: "img/Boxanimationblaurückwärts-2.png",
+
+      // Musik
       bg_music: "sounds/BeepBox-Song.mp3"
     };
 
-    function preloadImages(list) {
-      const keys = Object.keys(list).filter(k => !k.toLowerCase().includes("music") && !k.toLowerCase().includes("bg_music"));
+    function preloadImages(list){
+      const keys = Object.keys(list).filter(k=>!k.toLowerCase().includes("music"));
       const images = {};
-      let loaded = 0, failed = 0;
-
-      return new Promise(resolve => {
-        if (keys.length === 0) return resolve({images, failed});
-        keys.forEach(key => {
+      let loaded=0, failed=0;
+      return new Promise(resolve=>{
+        if(keys.length===0) return resolve({images, failed});
+        keys.forEach(key=>{
           const img = new Image();
           img.src = list[key];
-          img.onload = () => { images[key] = img; loaded++; check(); };
-          img.onerror = () => { failed++; console.error("Fehler beim Laden:", list[key]); check(); };
+          img.onload=()=>{ images[key]=img; loaded++; check(); };
+          img.onerror=()=>{ failed++; console.error("Fehler beim Laden:", list[key]); check(); };
         });
-        function check() { if (loaded + failed === keys.length) resolve({images, failed}); }
+        function check(){ if(loaded+failed===keys.length) resolve({images, failed}); }
       });
     }
 
-    (function () {
-      const startBtn = document.getElementById('startButton');
-      const gameSection = document.getElementById('gameSection');
+    (function(){
+      const startBtn=document.getElementById('startButton');
+      const gameSection=document.getElementById('gameSection');
 
-      preloadImages(ASSETS).then(({images, failed}) => {
-        if (failed > 0) {
-          console.warn(failed + ' Asset(s) konnten nicht geladen werden. Prüfe Pfade im img-Ordner.');
-        }
-        if (typeof BoxFightInit === 'function') BoxFightInit(images, ASSETS);
-        startBtn.disabled = false;
-        startBtn.textContent = 'Start';
+      preloadImages(ASSETS).then(({images, failed})=>{
+        if(failed>0) console.warn(failed+' Asset(s) konnten nicht geladen werden.');
+        if(typeof BoxFightInit==='function') BoxFightInit(images, ASSETS);
+        startBtn.disabled=false;
+        startBtn.textContent='Start';
       });
 
-      startBtn.addEventListener('click', function () {
-        gameSection.style.display = 'block';
-        const canvas = document.getElementById('game');
-        if (canvas && canvas.focus) canvas.focus();
-        if (typeof BoxFightStart === 'function') BoxFightStart();
+      startBtn.addEventListener('click', function(){
+        gameSection.style.display='block';
+        const canvas=document.getElementById('game');
+        if(canvas&&canvas.focus) canvas.focus();
+        if(typeof BoxFightStart==='function') BoxFightStart();
       });
 
-      document.getElementById('restart').addEventListener('click', () => {
-        if (typeof BoxFightRestart === 'function') BoxFightRestart();
+      document.getElementById('restart').addEventListener('click', ()=>{
+        if(typeof BoxFightRestart==='function') BoxFightRestart();
       });
 
-      document.getElementById('mobile-buttons').addEventListener('click', ev => {
-        const btn = ev.target.closest('button');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, true);
-        setTimeout(()=>{ if (typeof BoxFightMobileAction === 'function') BoxFightMobileAction(action, false); }, 150);
+      document.getElementById('mobile-buttons').addEventListener('click', ev=>{
+        const btn=ev.target.closest('button');
+        if(!btn) return;
+        const action=btn.dataset.action;
+        if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,true);
+        setTimeout(()=>{ if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,false); },150);
       });
     })();
   </script>
