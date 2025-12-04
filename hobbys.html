@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <canvas id="game" width="900" height="420" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
+      <canvas id="game" width="900" height="240" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
 
       <div class="controls">
         <div class="instructions">
@@ -74,66 +74,44 @@
   <!-- Asset-Preloader und Start-Integration -->
   <script>
     const ASSETS = {
-      // Hintergrund
-      bg: "img/hintergrund.png",
+      bg_fertig: "img/Hintergrund_fertig.png", // Neuer Hintergrund
 
-      // --- Roter Spieler (deine Namen) ---
-      // Idle / Stand
+      // --- Roter Spieler ---
       stand: "img/stand.png",
       stand_back: "img/Standrückwärts.png",
-
-      // Lauf rechts (2)
       player_run_1: "img/Laufanimation1-1.png",
       player_run_2: "img/Laufanimation1-2.png",
-      // Lauf links (2)
       player_run_1_back: "img/Laufanimationrückwärts1.png",
       player_run_2_back: "img/Laufanimationrückwärts2.png",
-
-      // Sprung rechts (3)
       player_jump_1: "img/Spring-1.png",
       player_jump_2: "img/Spring-2.png",
       player_jump_3: "img/Spring-3.png",
-      // Sprung links (3)
       player_jump_1_back: "img/Springrückwärts-1.png",
       player_jump_2_back: "img/Springrückwärts-2.png",
       player_jump_3_back: "img/Springrückwärts-3.png",
-
-      // Schlag rechts (2)
       player_punch_1: "img/Boxanimation1-1.png",
       player_punch_2: "img/Boxanimation1-2.png",
-      // Schlag links (2)
       player_punch_1_back: "img/Boxanimationrückwärts-1.png",
       player_punch_2_back: "img/Boxanimationrückwärts-2.png",
 
-      // --- Blauer Gegner (KI) ---
-      // Idle
+      // --- Blauer Gegner ---
       enemy_stand: "img/Blaustand.png",
       enemy_stand_back: "img/Standblaurückwärts.png",
-
-      // Lauf links (blau)
       enemy_run_1: "img/Laufanimationblau-1.png",
       enemy_run_2: "img/Laufanimationblau-2.png",
-      // Lauf rechts (blau, rückwärts)
       enemy_run_1_back: "img/Laufanimationblaurückwärts1.png",
       enemy_run_2_back: "img/Laufanimationblaurückwärts2.png",
-
-      // Sprung links (blau)
-      enemy_jump_1: "img/Springblau-1.png.png",
-      enemy_jump_2: "img/Springblau-2.png.png",
-      enemy_jump_3: "img/Springblau-3.png.png",
-      // Sprung rechts (blau rückwärts)
+      enemy_jump_1: "img/Springblau-1.png",
+      enemy_jump_2: "img/Springblau-2.png",
+      enemy_jump_3: "img/Springblau-3.png",
       enemy_jump_1_back: "img/Springblaurückwärts-1.png",
       enemy_jump_2_back: "img/Springblaurückwärts-2.png",
       enemy_jump_3_back: "img/Springblaurückwärts-3.png",
-
-      // Schlag links (blau)
       enemy_punch_1: "img/Blaubox-1.png",
       enemy_punch_2: "img/Blaubox-2.png",
-      // Schlag rechts (blau rückwärts)
       enemy_punch_1_back: "img/Boxanimationblaurückwärts-1.png",
       enemy_punch_2_back: "img/Boxanimationblaurückwärts-2.png",
 
-      // Musik (optional)
       bg_music: "sounds/BeepBox-Song.mp3"
     };
 
@@ -177,7 +155,6 @@
         const btn=ev.target.closest('button');
         if(!btn) return;
         const action=btn.dataset.action;
-        // mobile action: press then release shortly
         if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,true);
         setTimeout(()=>{ if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,false); },140);
       });
