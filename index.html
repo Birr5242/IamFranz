@@ -8,6 +8,12 @@
 </head>
 <body>
 
+  <!-- Intro-Seite -->
+  <div id="intro">
+    <h1>Willkommen auf meiner Website</h1>
+    <button id="enterBtn">Jetzt betreten</button>
+  </div>
+
   <!-- Navigation -->
   <nav>
     <a href="index.html">Start</a>
@@ -17,7 +23,8 @@
     <a href="video.html">Video</a>
   </nav>
 
-  <main>
+  <!-- Hauptinhalt -->
+  <main id="mainContent" style="display:none;">
     <!-- Hero-Bereich mit GIF -->
     <section class="hero">
       <img src="img/teaser-swisscom-liveform-anim-300x300-2x.gif" 
@@ -49,6 +56,32 @@
       </div>
     </section>
   </main>
+
+  <!-- Script für Intro -->
+  <script>
+    const intro = document.getElementById('intro');
+    const mainContent = document.getElementById('mainContent');
+    const enterBtn = document.getElementById('enterBtn');
+
+    enterBtn.addEventListener('click', () => {
+      intro.classList.add('fade-out');
+      setTimeout(() => {
+        intro.style.display = 'none';
+        mainContent.style.display = 'block';
+      }, 1000);
+    });
+
+    // Auto-Ausblendung nach 5 Sekunden
+    setTimeout(() => {
+      if(!intro.classList.contains('fade-out')) {
+        intro.classList.add('fade-out');
+        setTimeout(() => {
+          intro.style.display = 'none';
+          mainContent.style.display = 'block';
+        }, 1000);
+      }
+    }, 5000);
+  </script>
 
 </body>
 </html>
