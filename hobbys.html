@@ -3,160 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hobbys – Franz Barjak</title>
+  <title>Boxfight</title>
 
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="static/css/boxfight.css" />
-</head>
-<body>
-  <nav>
-    <a href="index.html">Start</a>
-    <a href="lebenslauf.html">Lebenslauf</a>
-    <a href="hobbys.html">Hobbys</a>
-    <a href="kontakt.html">Kontakt</a>
-    <a href="video.html">Video</a>
-  </nav>
-
-  <main class="container">
-    <h1>Meine Hobbys</h1>
-    <p>Eines meiner liebsten Hobbys ist Boxen. Ich trainiere regelmäßig und spiele auch Gitarre.</p>
-    <p>Klicke auf Start, um das Boxspiel zu beginnen.</p>
-
-    <button id="startButton" disabled>Start (lade Assets)</button>
-
-    <section id="gameSection" class="game-wrapper" style="display:none; margin-top:16px;">
-      <div class="hud">
-        <div class="player-hp">
-          <div id="player-name">Du</div>
-          <div class="bar"><div id="player-health" class="health"></div></div>
-        </div>
-        <div class="enemy-hp">
-          <div id="enemy-name">Gegner</div>
-          <div class="bar"><div id="enemy-health" class="health"></div></div>
-        </div>
-      </div>
-
-      <canvas id="game" width="900" height="240" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
-
-      <div class="controls">
-        <div class="instructions">
-          <strong>Steuerung:</strong> A/D = Links/Rechts, W = Springen, K = Schlag
-        </div>
-
-        <div class="mobile-buttons" id="mobile-buttons">
-          <button class="btn" data-action="left" aria-label="links">◀</button>
-          <button class="btn" data-action="right" aria-label="rechts">▶</button>
-          <button class="btn" data-action="jump" aria-label="springen">↑</button>
-          <button class="btn" data-action="punch" aria-label="schlagen">Schlag</button>
-        </div>
-
-        <div class="actions">
-          <button id="restart">Neustart</button>
-          <label for="difficulty">
-            KI-Schwierigkeit:
-            <select id="difficulty">
-              <option value="0.6">Leicht</option>
-              <option value="0.8" selected>Mittel</option>
-              <option value="1.0">Schwer</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div id="message" class="message" aria-live="polite"></div>
-      <p class="footnote">Kleine Demo: Änderungen am Balancing, Grafiken oder Sound sind leicht möglich.</p>
-    </section>
-  </main>
-
-  <script src="static/js/boxfight.js"></script>
-
-  <script>
-    const ASSETS = {
-      bg_fertig: "img/Hintergrund_fertig.png",
-
-      // Spieler Rot
-      stand: "img/stand.png",
-      stand_back: "img/Standrückwärts.png",
-      player_run_1: "img/Laufanimation1-1.png",
-      player_run_2: "img/Laufanimation1-2.png",
-      player_run_1_back: "img/Laufanimationrückwärts1.png",
-      player_run_2_back: "img/Laufanimationrückwärts2.png",
-      player_jump_1: "img/Spring-1.png",
-      player_jump_2: "img/Spring-2.png",
-      player_jump_3: "img/Spring-3.png",
-      player_jump_1_back: "img/Springrückwärts-1.png",
-      player_jump_2_back: "img/Springrückwärts-2.png",
-      player_jump_3_back: "img/Springrückwärts-3.png",
-      player_punch_1: "img/Boxanimation1-1.png",
-      player_punch_2: "img/Boxanimation1-2.png",
-      player_punch_1_back: "img/Boxanimationrückwärts-1.png",
-      player_punch_2_back: "img/Boxanimationrückwärts-2.png",
-
-      // Gegner Blau
-      enemy_stand: "img/Blaustand.png",
-      enemy_stand_back: "img/Standblaurückwärts.png",
-      enemy_run_1: "img/Laufanimationblau-1.png",
-      enemy_run_2: "img/Laufanimationblau-2.png",
-      enemy_run_1_back: "img/Laufanimationblaurückwärts1.png",
-      enemy_run_2_back: "img/Laufanimationblaurückwärts2.png",
-      enemy_jump_1: "img/Springblau-1.png",
-      enemy_jump_2: "img/Springblau-2.png",
-      enemy_jump_3: "img/Springblau-3.png",
-      enemy_jump_1_back: "img/Springblaurückwärts-1.png",
-      enemy_jump_2_back: "img/Springblaurückwärts-2.png",
-      enemy_jump_3_back: "img/Springblaurückwärts-3.png",
-      enemy_punch_1: "img/Blaubox-1.png",
-      enemy_punch_2: "img/Blaubox-2.png",
-      enemy_punch_1_back: "img/Boxanimationblaurückwärts-1.png",
-      enemy_punch_2_back: "img/Boxanimationblaurückwärts-2.png",
-
-      bg_music: "sounds/BeepBox-Song.mp3"
-    };
-
-    function preloadImages(list){
-      const keys = Object.keys(list).filter(k=>!k.toLowerCase().includes("music"));
-      const images = {};
-      let loaded=0, failed=0;
-      return new Promise(resolve=>{
-        if(keys.length===0) return resolve({images, failed});
-        keys.forEach(key=>{
-          const img = new Image();
-          img.src = list[key];
-          img.onload=()=>{ images[key]=img; loaded++; check(); };
-          img.onerror=()=>{ failed++; console.error("Fehler beim Laden:", list[key]); check(); };
-        });
-        function check(){ if(loaded+failed===keys.length) resolve({images, failed}); }
-      });
+  <style>
+    body {
+      background: #111;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      font-family: Arial;
     }
+    #game {
+      border: 2px solid white;
+      image-rendering: pixelated;
+      margin-top: 20px;
+    }
+    #ui {
+      margin-top: 10px;
+      width: 900px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .hpbar {
+      height: 20px;
+      background: red;
+      transition: 0.2s;
+    }
+  </style>
+</head>
 
-    (function(){
-      const startBtn=document.getElementById('startButton');
-      const gameSection=document.getElementById('gameSection');
+<body>
 
-      preloadImages(ASSETS).then(({images, failed})=>{
-        if(failed>0) console.warn(failed+' Asset(s) konnten nicht geladen werden.');
-        if(typeof BoxFightInit==='function') BoxFightInit(images, ASSETS);
-        startBtn.disabled=false;
-        startBtn.textContent='Start';
-      });
+<h2>Boxfight Game</h2>
 
-      startBtn.addEventListener('click', function(){
-        gameSection.style.display='block';
-        const canvas=document.getElementById('game');
-        if(canvas&&canvas.focus) canvas.focus();
-        if(typeof BoxFightStart==='function') BoxFightStart();
-      });
+<canvas id="game" width="900" height="240"></canvas>
 
-      document.getElementById('restart').addEventListener('click', ()=>{ if(typeof BoxFightRestart==='function') BoxFightRestart(); });
+<div id="ui">
+  <div style="width:45%; background:#444;">
+    <div id="player-health" class="hpbar"></div>
+  </div>
 
-      document.getElementById('mobile-buttons').addEventListener('click', ev=>{
-        const btn=ev.target.closest('button');
-        if(!btn) return;
-        const action=btn.dataset.action;
-        if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,true);
-        setTimeout(()=>{ if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,false); },140);
-      });
-    })();
-  </script>
+  <select id="difficulty">
+    <option value="0.7">Leicht</option>
+    <option value="1.0" selected>Mittel</option>
+    <option value="1.4">Schwer</option>
+  </select>
+
+  <div style="width:45%; background:#444;">
+    <div id="enemy-health" class="hpbar"></div>
+  </div>
+</div>
+
+<button onclick="BoxFightStart()">Start</button>
+<button onclick="BoxFightRestart()">Restart</button>
+
+<script>
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// BILDER LADEN
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+const imgList = {
+  bg_fertig: "img/Hintergrund_fertig.png",
+
+  stand: "img/stand.png",
+  stand_back: "img/Standrückwärts.png",
+
+  player_run_1: "img/Laufanimation1-1.png",
+  player_run_2: "img/Laufanimation1-2.png",
+  player_run_1_back: "img/Laufanimationrückwärts1.png",
+  player_run_2_back: "img/Laufanimationrückwärts2.png",
+
+  player_jump_1: "img/Spring-1.png",
+  player_jump_2: "img/Spring-2.png",
+  player_jump_3: "img/Spring-3.png",
+  player_jump_1_back: "img/Springrückwärts-1.png",
+  player_jump_2_back: "img/Springrückwärts-2.png",
+  player_jump_3_back: "img/Springrückwärts-3.png",
+
+  player_punch_1: "img/Boxanimation1-1.png",
+  player_punch_2: "img/Boxanimation1-2.png",
+  player_punch_1_back: "img/Boxanimationrückwärts-1.png",
+  player_punch_2_back: "img/Boxanimationrückwärts-2.png",
+
+  enemy_stand: "img/Blaubox-1.png",
+  enemy_stand_back: "img/Blaubox-2.png",
+
+  enemy_run_1: "img/Laufanimationblau-1.png",
+  enemy_run_2: "img/Laufanimationblau-2.png",
+  enemy_run_1_back: "img/Laufanimationblau-1.png",
+  enemy_run_2_back: "img/Laufanimationblau-2.png",
+
+  enemy_jump_1: "img/Springblau-1.png",
+  enemy_jump_2: "img/Springblau-2.png",
+  enemy_jump_3: "img/Springblau-3.png",
+  enemy_jump_1_back: "img/Springblau-1.png",
+  enemy_jump_2_back: "img/Springblau-2.png",
+  enemy_jump_3_back: "img/Springblau-3.png",
+
+  enemy_punch_1: "img/Boxanimation1-1.png",
+  enemy_punch_2: "img/Boxanimation1-2.png",
+  enemy_punch_1_back: "img/Boxanimation1-1.png",
+  enemy_punch_2_back: "img/Boxanimation1-2.png",
+};
+
+let loadedImages = {};
+let loadCount = 0;
+let totalImages = Object.keys(imgList).length;
+
+for (let key in imgList) {
+  let img = new Image();
+  img.src = imgList[key];
+  img.onload = () => {
+    loadCount++;
+    if (loadCount === totalImages) {
+      BoxFightInit(loadedImages, {});
+    }
+  };
+  loadedImages[key] = img;
+}
+</script>
+
+<script src="static/js/boxfight.js"></script>
+
 </body>
 </html>
