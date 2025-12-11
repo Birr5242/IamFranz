@@ -9,12 +9,12 @@
   const countdownDelay = 60;
   const PLATFORM_Y = 570;
   const MIN_X = 27, MAX_X = 1121;
-  const GRAVITY = 0.6, PUNCH_COOLDOWN = 600;
+  const GRAVITY = 0.6, PUNCH_COOLDOWN = 1200;
 
   const keys = { left:false, right:false, punch:false };
   let frameIndex = 0, frameTimer = 0;
-  const runFrameDelay = 12;  // langsamer Lauf
-  const punchFrameDelay = 8;
+  const runFrameDelay = 15;  // langsamer Lauf
+  const punchFrameDelay = 10;
 
   window.BoxFightInit = function(loadedImages, passedAssets){
     images = loadedImages || {};
