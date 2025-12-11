@@ -10,13 +10,13 @@
   <style>
     body { background:#fff; color:#111; font-family:Arial, sans-serif; margin:18px; display:flex; flex-direction:column; align-items:center; }
     nav { width:1131px; margin-bottom:6px; }
-    #game { border:3px solid #000; image-rendering: pixelated; display:block; background:#fff; }
+    #game { border:3px solid #000; image-rendering: pixelated; display:block; background:#fff; width:1131px; height:769px; }
     .hud { width:1131px; display:flex; justify-content:space-between; margin-top:8px; align-items:center; color:black; }
-    .bar { width:200px; height:20px; background:#ccc; border:2px solid #000; }
+    .bar { width:200px; height:20px; background:#ccc; border:2px solid #999; }
     .health { height:100%; background:red; width:100%; border-radius:4px; transition:width 0.2s linear; }
     .controls { width:1131px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; color:black; }
     button, select { padding:6px 10px; font-size:14px; }
-    #loaderStatus { color:#333; font-size:13px; margin-top:8px; width:1131px; text-align:center; }
+    #loaderStatus { color:#111; font-size:13px; margin-top:8px; width:1131px; text-align:center; }
     .mobile-buttons { display:none; }
   </style>
 </head>
@@ -38,7 +38,6 @@
         <div id="player-name">Du</div>
         <div class="bar"><div id="player-health" class="health" style="width:100%"></div></div>
       </div>
-
       <div class="enemy-hp">
         <div id="enemy-name">Gegner</div>
         <div class="bar"><div id="enemy-health" class="health" style="width:100%"></div></div>
@@ -51,7 +50,6 @@
       <div>
         <strong>Steuerung:</strong> A / D = Links / Rechts — W = Springen — K = Schlag
       </div>
-
       <div>
         <button id="startButton" disabled>Start (lade Assets)</button>
         <button id="restart" disabled>Neustart</button>
@@ -70,7 +68,8 @@
 
   <script>
     const ASSETS = {
-      bg_fertig: "img/Background.png",
+      bg_fertig: "img/Hintergrund_fertig.png",
+      // Spieler Animationen
       stand: "img/stand.png",
       stand_back: "img/Standrückwärts.png",
       player_run_1: "img/Laufanimation1-1.png",
@@ -87,6 +86,8 @@
       player_punch_2: "img/Boxanimation1-2.png",
       player_punch_1_back: "img/Boxanimationrückwärts-1.png",
       player_punch_2_back: "img/Boxanimationrückwärts-2.png",
+
+      // KI Animationen
       enemy_stand: "img/Blaustand.png",
       enemy_stand_back: "img/Standblaurückwärts.png",
       enemy_run_1: "img/Laufanimationblau-1.png",
@@ -106,18 +107,19 @@
     };
 
     function preloadImages(list){
-      const keys = Object.keys(list).filter(k=>!k.toLowerCase().includes(".mp4"));
+      const keys = Object.keys(list);
       const images = {};
       let loaded=0, failed=0;
       const total = keys.length;
       const status = document.getElementById("loaderStatus");
+
       return new Promise(resolve=>{
         if(total===0) return resolve({images, failed});
         keys.forEach(key=>{
           const img = new Image();
           img.src = list[key];
           img.onload = ()=>{ images[key]=img; loaded++; status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check(); };
-          img.onerror = ()=>{ failed++; const ph = document.createElement("canvas"); ph.width=1; ph.height=1; images[key]=ph; status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check(); };
+          img.onerror = ()=>{ failed++; console.error("Fehler beim Laden:", list[key]); images[key]=document.createElement("canvas"); images[key].width=1; images[key].height=1; status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check(); };
         });
         function check(){ if(loaded+failed===total) resolve({images, failed}); }
       });
@@ -132,6 +134,11 @@
         document.getElementById("loaderStatus").textContent = `Ladevorgang abgeschlossen — Fehler: ${failed}`;
         startBtn.disabled=false;
         restartBtn.disabled=false;
+      }).catch(err=>{
+        console.error("Preload-Error",err);
+        document.getElementById("loaderStatus").textContent = "Fehler beim Laden der Assets (Konsole).";
+        if(typeof BoxFightInit==='function') BoxFightInit({}, ASSETS);
+        startBtn.disabled=false; restartBtn.disabled=false;
       });
 
       startBtn.addEventListener('click', ()=>{ if(typeof BoxFightStart==='function') BoxFightStart(); });
