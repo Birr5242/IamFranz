@@ -16,7 +16,7 @@
   const runFrameDelay = 15;  // langsamer Lauf
   const punchFrameDelay = 10;
   const PUNCH_DURATION = 30; // ca 0.5 Sekunden
-  const PUNCH_COOLDOWN = 2000; // 2 Sekunden
+  const PUNCH_COOLDOWN = 1000; // 1 Sekunden
 
   window.BoxFightInit = function(loadedImages, passedAssets){
     images = loadedImages || {};
