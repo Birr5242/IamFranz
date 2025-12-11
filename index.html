@@ -1,160 +1,146 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Franz Barjak – Bewerbung</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Franz Barjak – Bewerbung</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 </head>
 <body>
 
-  <!-- Shader-Hintergrund -->
-  <div id="colorBendsContainer"></div>
+<div id="colorBendsContainer"></div>
 
-  <!-- Intro-Seite -->
-  <div id="intro">
-    <h1>Willkommen auf meiner Website</h1>
-    <button id="enterBtn">Jetzt betreten</button>
-  </div>
+<div id="intro">
+  <h1>Willkommen auf meiner Website</h1>
+  <button id="enterBtn">Jetzt betreten</button>
+</div>
 
-  <!-- Navigation -->
-  <nav>
-    <a href="index.html">Start</a>
-    <a href="lebenslauf.html">Lebenslauf</a>
-    <a href="hobbys.html">Hobbys</a>
-    <a href="kontakt.html">Kontakt</a>
-    <a href="video.html">Video</a>
-  </nav>
+<nav>
+  <a href="index.html">Start</a>
+  <a href="lebenslauf.html">Lebenslauf</a>
+  <a href="hobbys.html">Hobbys</a>
+  <a href="kontakt.html">Kontakt</a>
+  <a href="video.html">Video</a>
+</nav>
 
-  <!-- Hauptinhalt -->
-  <main id="mainContent" style="display:none;">
-    <section class="hero">
-      <img src="img/teaser-swisscom-liveform-anim-300x300-2x.gif" 
-           alt="Swisscom animiertes GIF" 
-           class="hero-video">
-      <div class="hero-text">
-        <h1>Willkommen auf meiner Bewerbungswebsite</h1>
-        <p>Grüezi! Ich bin Franz Barjak, 17 Jahre alt, Schüler an der KSB, mit Wurzeln in Bolivien und Deutschland. Meine Lieblingsfächer sind Informatik, Wirtschaft, Mathe, Englisch und Sport. Ich liebe Technik und lerne gerne Neues.</p>
-      </div>
-    </section>
+<main id="mainContent" style="display:none;">
+  <section class="hero">
+    <img src="img/teaser-swisscom-liveform-anim-300x300-2x.gif" class="hero-video" alt="Swisscom GIF">
+    <div class="hero-text">
+      <h1>Willkommen auf meiner Bewerbungswebsite</h1>
+      <p>Grüezi! Ich bin Franz Barjak, 17 Jahre alt, Schüler an der KSB, mit Wurzeln in Bolivien und Deutschland. Meine Lieblingsfächer sind Informatik, Wirtschaft, Mathe, Englisch und Sport. Ich liebe Technik und lerne gerne Neues.</p>
+    </div>
+  </section>
+  <section class="content-row">
+    <div class="text-left">
+      <img src="img/franz.JPG" width="200" style="border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,0.2); margin-bottom:20px;">
+      <p>Ich habe die Lehrstelle als Entwickler Digitales Business bei Swisscom erhalten. Ich bin überglücklich und hoffe, dir gefällt meine Website über mich!</p>
+    </div>
+    <div class="video-right">
+      <video autoplay muted loop playsinline>
+        <source src="img/Gym.mp4" type="video/mp4">
+      </video>
+    </div>
+  </section>
+</main>
 
-    <section class="content-row">
-      <div class="text-left">
-        <img src="img/franz.JPG" 
-             alt="Profilbild Franz" 
-             width="200"
-             style="border-radius:50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom:20px;">
-        <p>Ich habe die Lehrstelle als Entwickler Digitales Business bei Swisscom erhalten. Ich bin überglücklich und hoffe, dir gefällt meine Website über mich!</p>
-      </div>
+<script>
+const intro = document.getElementById('intro');
+const mainContent = document.getElementById('mainContent');
+const enterBtn = document.getElementById('enterBtn');
 
-      <div class="video-right">
-        <video autoplay muted loop playsinline>
-          <source src="img/Gym.mp4" type="video/mp4">
-          Dein Browser unterstützt das Video-Tag nicht.
-        </video>
-      </div>
-    </section>
-  </main>
+enterBtn.addEventListener('click', () => {
+  intro.classList.add('fade-out');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    mainContent.style.display = 'block';
+  }, 1000);
+});
 
-  <!-- Script für Intro -->
-  <script>
-    const intro = document.getElementById('intro');
-    const mainContent = document.getElementById('mainContent');
-    const enterBtn = document.getElementById('enterBtn');
-
-    enterBtn.addEventListener('click', () => {
-      intro.classList.add('fade-out');
-      setTimeout(() => {
-        intro.style.display = 'none';
-        mainContent.style.display = 'block';
-      }, 1000);
-    });
-
+setTimeout(() => {
+  if(!intro.classList.contains('fade-out')){
+    intro.classList.add('fade-out');
     setTimeout(() => {
-      if(!intro.classList.contains('fade-out')) {
-        intro.classList.add('fade-out');
-        setTimeout(() => {
-          intro.style.display = 'none';
-          mainContent.style.display = 'block';
-        }, 1000);
-      }
-    }, 5000);
-  </script>
+      intro.style.display = 'none';
+      mainContent.style.display = 'block';
+    }, 1000);
+  }
+}, 5000);
+</script>
 
-  <!-- Shader-Hintergrund Script -->
-  <script>
-    const container = document.getElementById('colorBendsContainer');
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
-    const geometry = new THREE.PlaneGeometry(2,2);
+<script>
+const container = document.getElementById('colorBendsContainer');
+container.style.width = '100%';
+container.style.height = '100vh'; // WICHTIG
 
-    const vert = `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = vec4(position,1.0);
-      }
-    `;
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const geometry = new THREE.PlaneGeometry(2,2);
 
-    const frag = `
-      uniform float uTime;
-      uniform vec2 uPointer;
-      varying vec2 vUv;
+const vert = `
+varying vec2 vUv;
+void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
+`;
 
-      void main() {
-        vec2 p = vUv*2.0-1.0;
-        p += uPointer*0.3;
+const frag = `
+uniform float uTime;
+uniform vec2 uPointer;
+varying vec2 vUv;
 
-        float r = length(p);
-        float angle = atan(p.y,p.x);
+void main(){
+  vec2 p = vUv*2.0-1.0;
+  p += uPointer*0.3;
+  float r = length(p);
+  float angle = atan(p.y,p.x);
 
-        float red   = 0.5 + 0.5 * sin(10.0*r - uTime*2.0 + angle*5.0);
-        float green = 0.5 + 0.5 * sin(10.0*r - uTime*2.0 + angle*5.0 + 2.0);
-        float blue  = 0.5 + 0.5 * sin(10.0*r - uTime*2.0 + angle*5.0 + 4.0);
+  float red   = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0);
+  float green = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0 + 2.0);
+  float blue  = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0 + 4.0);
 
-        gl_FragColor = vec4(red,green,blue,1.0);
-      }
-    `;
+  gl_FragColor = vec4(red,green,blue,1.0);
+}
+`;
 
-    const material = new THREE.ShaderMaterial({
-      vertexShader: vert,
-      fragmentShader: frag,
-      uniforms: {
-        uTime: {value:0},
-        uPointer: {value: new THREE.Vector2(0,0)}
-      }
-    });
+const material = new THREE.ShaderMaterial({
+  vertexShader: vert,
+  fragmentShader: frag,
+  uniforms: {
+    uTime: { value:0 },
+    uPointer: { value: new THREE.Vector2(0,0) }
+  }
+});
 
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
 
-    const renderer = new THREE.WebGLRenderer({alpha:true});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+container.appendChild(renderer.domElement);
 
-    const clock = new THREE.Clock();
-    const pointer = new THREE.Vector2(0,0);
+function resize() {
+  renderer.setSize(container.clientWidth, container.clientHeight);
+}
+resize();
+window.addEventListener('resize', resize);
 
-    container.addEventListener('pointermove', e=>{
-      const rect = container.getBoundingClientRect();
-      pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
-      pointer.y = -(((e.clientY-rect.top)/rect.height)*2-1);
-    });
+const clock = new THREE.Clock();
+const pointer = new THREE.Vector2(0,0);
 
-    window.addEventListener('resize', ()=>{
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    });
+container.addEventListener('pointermove', e=>{
+  const rect = container.getBoundingClientRect();
+  pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
+  pointer.y = -(((e.clientY-rect.top)/rect.height)*2-1);
+});
 
-    function animate(){
-      material.uniforms.uTime.value = clock.getElapsedTime();
-      material.uniforms.uPointer.value.copy(pointer);
-      renderer.render(scene,camera);
-      requestAnimationFrame(animate);
-    }
-    animate();
-  </script>
+function animate(){
+  material.uniforms.uTime.value = clock.getElapsedTime();
+  material.uniforms.uPointer.value.copy(pointer);
+  renderer.render(scene,camera);
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
 
 </body>
 </html>
