@@ -26,13 +26,13 @@ console.log("Boxfight System aktiv.");
   let countdownTimer = 0;
   const countdownDelay = 60;
 
-  // Plattform und Grenzen (skaliert)
-  const PLATFORM_Y = 178; // entspricht ~126 * 1.4118
-  const MIN_X = 21;
-  const MAX_X = 889;
+  // Plattform und Grenzen für neuen Hintergrund
+  const PLATFORM_Y = 570;
+  const MIN_X = 27;
+  const MAX_X = 1121;
 
   const GRAVITY = 0.6;
-  const PUNCH_COOLDOWN = 600; // etwas langsamer
+  const PUNCH_COOLDOWN = 600;
 
   // Init: BoxFightInit wird vom Preloader mit images gefüllt
   window.BoxFightInit = function (loadedImages, passedAssets) {
@@ -65,15 +65,6 @@ console.log("Boxfight System aktiv.");
     gameStarted = false;
     countdown = 3;
     countdownTimer = 0;
-
-    // Versuche Musik zu spielen (wenn vorhanden)
-    if (assets && assets.bg_music) {
-      try {
-        const a = new Audio(assets.bg_music);
-        a.loop = true; a.volume = 0.45; a.play().catch(()=>console.log("Autoplay blockiert"));
-      } catch (e) { console.warn("Fehler beim Abspielen der Musik:", e); }
-    }
-
     requestAnimationFrame(loop);
   };
 
@@ -101,7 +92,6 @@ console.log("Boxfight System aktiv.");
     if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
   });
 
-  // Player punch
   function doPlayerPunch() {
     if (punchAnimating) return;
     punchAnimating = true;
@@ -123,12 +113,12 @@ console.log("Boxfight System aktiv.");
 
     player.x = Math.max(MIN_X, Math.min(MAX_X - player.w, player.x));
 
-    // Gravity for player (but no falling off platform)
+    // Gravity
     player.vy += GRAVITY;
     player.y += player.vy;
     if (player.y >= PLATFORM_Y - player.h) { player.y = PLATFORM_Y - player.h; player.jumping = false; player.vy = 0; }
 
-    // Enemy AI (stay on platform)
+    // Enemy AI
     const distance = enemy.x - player.x;
     const absDist = Math.abs(distance);
     const difficulty = parseFloat(document.getElementById('difficulty')?.value || "1");
@@ -136,19 +126,14 @@ console.log("Boxfight System aktiv.");
     if (absDist > 55) {
       if (distance > 0) { enemy.x -= enemy.speed * difficulty; enemy.facing = "left"; }
       else { enemy.x += enemy.speed * difficulty; enemy.facing = "right"; }
-    } else if (Math.random() < 0.01) {
-      enemy.x += (Math.random() - 0.5) * 4;
-    }
+    } else if (Math.random() < 0.01) { enemy.x += (Math.random() - 0.5) * 4; }
 
-    // clamp enemy horizontally
     enemy.x = Math.max(MIN_X, Math.min(MAX_X - enemy.w, enemy.x));
 
-    // enemy jump occasionally
     if (!enemy.jumping && absDist < 120 && Math.random() < 0.008 * difficulty) {
       enemy.vy = -10; enemy.jumping = true;
     }
 
-    // enemy attack
     if (!enemy.attackCooldown && absDist < 60 && Math.random() < 0.02 * difficulty) {
       enemy.attackCooldown = true;
       setTimeout(() => {
@@ -172,7 +157,6 @@ console.log("Boxfight System aktiv.");
     }
   }
 
-  // Choose frame to draw
   function getFrame(c) {
     if (!c) return null;
     const moving = (c === player) ? (keys.left || keys.right) : Math.abs(c.x - c.prevX) > 0.5;
@@ -202,7 +186,6 @@ console.log("Boxfight System aktiv.");
       }
     }
 
-    // enemy
     switch (action) {
       case "idle": return faceRight ? (images.enemy_stand_back || images.enemy_stand) : (images.enemy_stand || images.enemy_stand_back);
       case "run": return faceRight ? (images.enemy_run_1_back || images.enemy_run_2_back) : (images.enemy_run_1 || images.enemy_run_2);
@@ -217,33 +200,27 @@ console.log("Boxfight System aktiv.");
   }
 
   function draw() {
-    // background
+    // white background first
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // draw game background
     if (images.bg && (images.bg instanceof HTMLImageElement || images.bg instanceof HTMLCanvasElement)) {
       ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.fillStyle = "#071428";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // subtle platform visual
+    // platform visual
     ctx.fillStyle = "rgba(80,40,140,0.25)";
     ctx.fillRect(MIN_X, PLATFORM_Y, MAX_X - MIN_X, 6);
 
     // draw characters
     const pf = getFrame(player);
-    if (pf) { try { ctx.drawImage(pf, player.x, player.y, player.w, player.h); } catch(e){} }
-    else {
-      // fallback rectangle if no sprite
-      ctx.fillStyle = "red";
-      ctx.fillRect(player.x, player.y, player.w, player.h);
-    }
+    if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
+    else { ctx.fillStyle = "red"; ctx.fillRect(player.x, player.y, player.w, player.h); }
 
     const ef = getFrame(enemy);
-    if (ef) { try { ctx.drawImage(ef, enemy.x, enemy.y, enemy.w, enemy.h); } catch(e){} }
-    else {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
-    }
+    if (ef) ctx.drawImage(ef, enemy.x, enemy.y, enemy.w, enemy.h);
+    else { ctx.fillStyle = "blue"; ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h); }
 
     // countdown overlay
     if (!gameStarted) {
