@@ -13,16 +13,12 @@ console.log("Boxfight System aktiv.");
     let enemy = null;
     let running = false;
 
-    // Input
     const keys = { left: false, right: false };
     const inputLock = { jump: false, attack: false };
-    const mobileLock = { jump: false, attack: false };
 
-    // Timing
     let frameIndex = 0;
     let frameTimer = 0;
 
-    let bgMusic = null;
     let punchAnimating = false;
 
     let gameStarted = false;
@@ -30,31 +26,19 @@ console.log("Boxfight System aktiv.");
     let countdownTimer = 0;
     const countdownDelay = 60;
 
-    // KONSTANTEN
-    const PLATFORM_Y = 180;
+    // Plattform Höhe
+    const PLATFORM_Y = 126;
+
+    // Grenzen
+    const MIN_X = 21;
+    const MAX_X = 889;
+
     const GRAVITY = 0.6;
     const PUNCH_COOLDOWN = 500;
 
-    // INIT
     window.BoxFightInit = function (loadedImages, passedAssets) {
         images = loadedImages || {};
         assets = passedAssets || {};
-
-        // Hintergrund setzen
-        if (images.bg_fertig) images.bg = images.bg_fertig;
-
-        // Music
-        if (assets.bg_music) {
-            bgMusic = new Audio(assets.bg_music);
-            bgMusic.loop = true;
-            bgMusic.volume = 0.45;
-        }
-
-        // HP Bars reset
-        const ph = document.getElementById("player-health");
-        const eh = document.getElementById("enemy-health");
-        if (ph) ph.style.width = "100%";
-        if (eh) eh.style.width = "100%";
     };
 
     function setupCharacters() {
@@ -68,7 +52,6 @@ console.log("Boxfight System aktiv.");
             jumping: false,
             speed: 2.2,
             facing: "right",
-            attackCooldown: false,
             prevX: 120
         };
 
@@ -82,67 +65,33 @@ console.log("Boxfight System aktiv.");
             jumping: false,
             speed: 2.2,
             facing: "left",
-            attackCooldown: false,
             prevX: 600
         };
     }
 
     window.BoxFightStart = function () {
         setupCharacters();
-
         running = true;
         gameStarted = false;
         countdown = 3;
         countdownTimer = 0;
-
-        if (bgMusic) {
-            bgMusic.play().catch(() => console.log("Autoplay blockiert"));
-        }
-
-        if (canvas && canvas.focus) canvas.focus();
         requestAnimationFrame(loop);
     };
 
     window.BoxFightRestart = function () {
         setupCharacters();
-
-        player.hp = 100;
-        enemy.hp = 100;
-
-        document.getElementById("player-health").style.width = "100%";
-        document.getElementById("enemy-health").style.width = "100%";
-
         running = true;
         gameStarted = false;
         countdown = 3;
         countdownTimer = 0;
 
+        document.getElementById("player-health").style.width = "100%";
+        document.getElementById("enemy-health").style.width = "100%";
+
         requestAnimationFrame(loop);
     };
 
-    // MOBILE
-    window.BoxFightMobileAction = function (action, state) {
-        if (action === "left" || action === "right") {
-            keys[action === "left" ? "left" : "right"] = state;
-        } else if (action === "jump") {
-            if (state) {
-                if (!mobileLock.jump && !player.jumping) {
-                    mobileLock.jump = true;
-                    player.vy = -10;
-                    player.jumping = true;
-                }
-            } else mobileLock.jump = false;
-        } else if (action === "punch") {
-            if (state) {
-                if (!mobileLock.attack && !punchAnimating) {
-                    mobileLock.attack = true;
-                    doPlayerPunch();
-                }
-            } else mobileLock.attack = false;
-        }
-    };
-
-    // KEYBOARD
+    // INPUT
     window.addEventListener("keydown", e => {
         if (!player || !gameStarted) return;
 
@@ -150,56 +99,37 @@ console.log("Boxfight System aktiv.");
         if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = true;
 
         if (e.code === "KeyW" || e.code === "ArrowUp") {
-            if (!inputLock.jump && !player.jumping) {
-                inputLock.jump = true;
+            if (!player.jumping) {
                 player.vy = -10;
                 player.jumping = true;
             }
         }
 
         if (e.code === "KeyK") {
-            if (!inputLock.attack && !punchAnimating) {
-                inputLock.attack = true;
-                doPlayerPunch();
-            }
+            if (!punchAnimating) doPlayerPunch();
         }
     });
 
     window.addEventListener("keyup", e => {
-        if (!player) return;
-
         if (e.code === "KeyA" || e.code === "ArrowLeft") keys.left = false;
         if (e.code === "KeyD" || e.code === "ArrowRight") keys.right = false;
-
-        if (e.code === "KeyW" || e.code === "ArrowUp") inputLock.jump = false;
-        if (e.code === "KeyK") inputLock.attack = false;
     });
 
-    // PLAYER PUNCH
     function doPlayerPunch() {
-        if (punchAnimating) return;
-
         punchAnimating = true;
 
-        const reach = 60;
-        if (Math.abs(player.x - enemy.x) < reach) {
+        if (Math.abs(player.x - enemy.x) < 60) {
             enemy.hp = Math.max(0, enemy.hp - 2.5);
         }
 
-        setTimeout(() => {
-            punchAnimating = false;
-        }, PUNCH_COOLDOWN);
+        setTimeout(() => punchAnimating = false, PUNCH_COOLDOWN);
     }
 
-    // UPDATE
     function update() {
         if (!running || !player || !enemy) return;
         if (!gameStarted) return;
 
-        player.prevX = player.x;
-        enemy.prevX = enemy.x;
-
-        // MOVE PLAYER
+        // PLAYER MOVE
         if (keys.left) {
             player.x -= player.speed;
             player.facing = "left";
@@ -208,9 +138,10 @@ console.log("Boxfight System aktiv.");
             player.facing = "right";
         }
 
-        player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+        // Grenzen
+        player.x = Math.max(MIN_X, Math.min(MAX_X - player.w, player.x));
 
-        // GRAVITY PLAYER
+        // GRAVITY
         player.vy += GRAVITY;
         player.y += player.vy;
 
@@ -222,37 +153,14 @@ console.log("Boxfight System aktiv.");
 
         // ENEMY AI
         const distance = enemy.x - player.x;
-        const absDist = Math.abs(distance);
 
-        const difficulty = parseFloat(document.getElementById("difficulty")?.value || "0.8");
-
-        if (absDist > 55) {
-            if (distance > 0) {
-                enemy.x -= enemy.speed * difficulty;
-                enemy.facing = "left";
-            } else {
-                enemy.x += enemy.speed * difficulty;
-                enemy.facing = "right";
-            }
+        if (Math.abs(distance) > 55) {
+            if (distance > 0) enemy.x -= enemy.speed;
+            else enemy.x += enemy.speed;
         }
 
-        if (!enemy.jumping && absDist < 120 && Math.random() < 0.008 * difficulty) {
-            enemy.vy = -10;
-            enemy.jumping = true;
-        }
+        enemy.x = Math.max(MIN_X, Math.min(MAX_X - enemy.w, enemy.x));
 
-        if (!enemy.attackCooldown && absDist < 60 && Math.random() < 0.02 * difficulty) {
-            enemy.attackCooldown = true;
-
-            setTimeout(() => {
-                if (Math.abs(enemy.x - player.x) < 70) {
-                    player.hp = Math.max(0, player.hp - 2.5);
-                }
-                enemy.attackCooldown = false;
-            }, PUNCH_COOLDOWN);
-        }
-
-        // GRAVITY ENEMY
         enemy.vy += GRAVITY;
         enemy.y += enemy.vy;
 
@@ -262,105 +170,63 @@ console.log("Boxfight System aktiv.");
             enemy.vy = 0;
         }
 
-        // HP BARS
-        document.getElementById("player-health").style.width = Math.max(0, Math.min(100, player.hp)) + "%";
-        document.getElementById("enemy-health").style.width = Math.max(0, Math.min(100, enemy.hp)) + "%";
+        // HP
+        document.getElementById("player-health").style.width = player.hp + "%";
+        document.getElementById("enemy-health").style.width = enemy.hp + "%";
 
-        // GAME END
+        // KILL
         if (player.hp <= 0 || enemy.hp <= 0) {
             running = false;
-            setTimeout(() => {
-                alert(enemy.hp <= 0 ? "Du gewinnst!" : "Gegner gewinnt!");
-            }, 50);
+            setTimeout(() => alert(enemy.hp <= 0 ? "Du gewinnst!" : "Gegner gewinnt!"), 100);
         }
     }
 
-    // FRAME SELECTION
-    function getFrame(character) {
-        if (!character) return null;
+    function getFrame(c) {
+        const moving = (c === player)
+            ? (keys.left || keys.right)
+            : Math.abs(c.x - c.prevX) > 0.5;
 
-        const moving =
-            character === player
-                ? (keys.left || keys.right)
-                : Math.abs(character.x - character.prevX) > 0.5;
-
-        const jumping = character.jumping;
-        const punch = (character === player) ? punchAnimating : character.attackCooldown;
+        const jumping = c.jumping;
+        const punching = (c === player) ? punchAnimating : false;
 
         let action = "idle";
-        if (punch) action = "punch";
+        if (punching) action = "punch";
         else if (jumping) action = "jump";
         else if (moving) action = "run";
 
         frameTimer++;
-        const limit = action === "idle" ? 18 : 10;
-
-        if (frameTimer > limit) {
+        if (frameTimer > 12) {
             frameTimer = 0;
             frameIndex = (frameIndex + 1) % 2;
         }
 
-        const facingRight = character.facing === "right";
+        const face = c.facing === "right";
 
-        // PLAYER
-        if (character === player) {
-            switch (action) {
-                case "idle":
-                    return facingRight ? images.stand : images.stand_back;
-
-                case "run":
-                    return facingRight
-                        ? images["player_run_" + (frameIndex + 1)]
-                        : images["player_run_" + (frameIndex + 1) + "_back"];
-
-                case "punch":
-                    return facingRight
-                        ? images["player_punch_" + ((frameIndex % 2) + 1)]
-                        : images["player_punch_" + ((frameIndex % 2) + 1) + "_back"];
-
-                case "jump":
-                    if (character.vy < -2)
-                        return facingRight ? images.player_jump_1 : images.player_jump_1_back;
-                    if (character.vy > 2)
-                        return facingRight ? images.player_jump_3 : images.player_jump_3_back;
-                    return facingRight ? images.player_jump_2 : images.player_jump_2_back;
+        if (c === player) {
+            if (action === "idle") return face ? images.stand : images.stand_back;
+            if (action === "run") return face ? images["player_run_" + (frameIndex + 1)] : images["player_run_" + (frameIndex + 1) + "_back"];
+            if (action === "punch") return face ? images["player_punch_" + (frameIndex + 1)] : images["player_punch_" + (frameIndex + 1) + "_back"];
+            if (action === "jump") {
+                if (c.vy < -2) return face ? images.player_jump_1 : images.player_jump_1_back;
+                if (c.vy > 2) return face ? images.player_jump_3 : images.player_jump_3_back;
+                return face ? images.player_jump_2 : images.player_jump_2_back;
             }
         }
 
-        // ENEMY
-        switch (action) {
-            case "idle":
-                return facingRight ? images.enemy_stand_back : images.enemy_stand;
-
-            case "run":
-                return facingRight
-                    ? images["enemy_run_" + (frameIndex + 1) + "_back"]
-                    : images["enemy_run_" + (frameIndex + 1)];
-
-            case "punch":
-                return facingRight
-                    ? images["enemy_punch_" + ((frameIndex % 2) + 1) + "_back"]
-                    : images["enemy_punch_" + ((frameIndex % 2) + 1)];
-
-            case "jump":
-                if (character.vy < -2)
-                    return facingRight ? images.enemy_jump_1_back : images.enemy_jump_1;
-                if (character.vy > 2)
-                    return facingRight ? images.enemy_jump_3_back : images.enemy_jump_3;
-                return facingRight ? images.enemy_jump_2_back : images.enemy_jump_2;
-        }
+        // ENEMY → gleiches System
+        if (action === "idle") return face ? images.enemy_stand_back : images.enemy_stand;
+        if (action === "run") return face ? images.enemy_run_1_back : images.enemy_run_1;
+        if (action === "punch") return face ? images.enemy_punch_1_back : images.enemy_punch_1;
+        if (action === "jump") return face ? images.enemy_jump_1_back : images.enemy_jump_1;
 
         return null;
     }
 
-    // DRAW
     function draw() {
-        if (!ctx) return;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (images.bg)
-            ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
+        if (images.bg_fertig)
+            ctx.drawImage(images.bg_fertig, 0, 0, canvas.width, canvas.height);
 
         const pf = getFrame(player);
         if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
@@ -368,33 +234,9 @@ console.log("Boxfight System aktiv.");
         const ef = getFrame(enemy);
         if (ef) ctx.drawImage(ef, enemy.x, enemy.y, enemy.w, enemy.h);
 
-        // COUNTDOWN
         if (!gameStarted) {
             ctx.fillStyle = "red";
-            ctx.font = "72px Arial";
+            ctx.font = "50px Arial";
             ctx.textAlign = "center";
 
-            if (countdown > 0) {
-                ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
-                countdownTimer++;
-                if (countdownTimer > countdownDelay) {
-                    countdown--;
-                    countdownTimer = 0;
-                }
-            } else {
-                ctx.fillText("LOS!", canvas.width / 2, canvas.height / 2);
-                countdownTimer++;
-                if (countdownTimer > countdownDelay)
-                    gameStarted = true;
-            }
-        }
-    }
-
-    // LOOP
-    function loop() {
-        update();
-        draw();
-        if (running) requestAnimationFrame(loop);
-    }
-
-})();
+            i
