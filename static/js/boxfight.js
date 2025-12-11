@@ -4,10 +4,7 @@ console.log("Boxfight System aktiv.");
 (function () {
   const canvas = document.getElementById("game");
   const ctx = canvas ? canvas.getContext("2d") : null;
-  if (!ctx) {
-    console.error("Kein Canvas-Kontext!");
-    return;
-  }
+  if (!ctx) { console.error("Kein Canvas-Kontext!"); return; }
   ctx.imageSmoothingEnabled = false;
 
   let images = {};
@@ -26,7 +23,7 @@ console.log("Boxfight System aktiv.");
   let countdownTimer = 0;
   const countdownDelay = 60;
 
-  // Plattform und Grenzen für neuen Hintergrund
+  // Plattform und Grenzen
   const PLATFORM_Y = 570;
   const MIN_X = 27;
   const MAX_X = 1121;
@@ -34,12 +31,11 @@ console.log("Boxfight System aktiv.");
   const GRAVITY = 0.6;
   const PUNCH_COOLDOWN = 600;
 
-  // Init: BoxFightInit wird vom Preloader mit images gefüllt
   window.BoxFightInit = function (loadedImages, passedAssets) {
     images = loadedImages || {};
     assets = passedAssets || {};
 
-    // map fallback: falls blue jump files nicht vorhanden nutze rote jumps
+    // Fallback für fehlende Enemy-Jumps
     if (!images.enemy_jump_1 && images.player_jump_1) images.enemy_jump_1 = images.player_jump_1;
     if (!images.enemy_jump_2 && images.player_jump_2) images.enemy_jump_2 = images.player_jump_2;
     if (!images.enemy_jump_3 && images.player_jump_3) images.enemy_jump_3 = images.player_jump_3;
@@ -47,7 +43,6 @@ console.log("Boxfight System aktiv.");
     if (!images.enemy_jump_2_back && images.player_jump_2_back) images.enemy_jump_2_back = images.player_jump_2_back;
     if (!images.enemy_jump_3_back && images.player_jump_3_back) images.enemy_jump_3_back = images.player_jump_3_back;
 
-    // setze images.bg falls vorhanden
     if (images.bg_fertig) images.bg = images.bg_fertig;
 
     console.log("BoxFightInit abgeschlossen. Geladene Keys:", Object.keys(images));
@@ -107,18 +102,15 @@ console.log("Boxfight System aktiv.");
     player.prevX = player.x;
     enemy.prevX = enemy.x;
 
-    // Player movement & clamp to platform
     if (keys.left) { player.x -= player.speed; player.facing = "left"; }
     else if (keys.right) { player.x += player.speed; player.facing = "right"; }
 
     player.x = Math.max(MIN_X, Math.min(MAX_X - player.w, player.x));
 
-    // Gravity
     player.vy += GRAVITY;
     player.y += player.vy;
     if (player.y >= PLATFORM_Y - player.h) { player.y = PLATFORM_Y - player.h; player.jumping = false; player.vy = 0; }
 
-    // Enemy AI
     const distance = enemy.x - player.x;
     const absDist = Math.abs(distance);
     const difficulty = parseFloat(document.getElementById('difficulty')?.value || "1");
@@ -126,7 +118,9 @@ console.log("Boxfight System aktiv.");
     if (absDist > 55) {
       if (distance > 0) { enemy.x -= enemy.speed * difficulty; enemy.facing = "left"; }
       else { enemy.x += enemy.speed * difficulty; enemy.facing = "right"; }
-    } else if (Math.random() < 0.01) { enemy.x += (Math.random() - 0.5) * 4; }
+    } else if (Math.random() < 0.01) {
+      enemy.x += (Math.random() - 0.5) * 4;
+    }
 
     enemy.x = Math.max(MIN_X, Math.min(MAX_X - enemy.w, enemy.x));
 
@@ -146,11 +140,9 @@ console.log("Boxfight System aktiv.");
     enemy.y += enemy.vy;
     if (enemy.y >= PLATFORM_Y - enemy.h) { enemy.y = PLATFORM_Y - enemy.h; enemy.jumping = false; enemy.vy = 0; }
 
-    // update HP bars
     document.getElementById("player-health").style.width = Math.max(0, Math.min(100, player.hp)) + "%";
     document.getElementById("enemy-health").style.width = Math.max(0, Math.min(100, enemy.hp)) + "%";
 
-    // end condition
     if (player.hp <= 0 || enemy.hp <= 0) {
       running = false;
       setTimeout(() => alert(enemy.hp <= 0 ? "Du gewinnst!" : "Gegner gewinnt!"), 50);
@@ -200,20 +192,16 @@ console.log("Boxfight System aktiv.");
   }
 
   function draw() {
-    // white background first
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // draw game background
     if (images.bg && (images.bg instanceof HTMLImageElement || images.bg instanceof HTMLCanvasElement)) {
       ctx.drawImage(images.bg, 0, 0, canvas.width, canvas.height);
     }
 
-    // platform visual
     ctx.fillStyle = "rgba(80,40,140,0.25)";
     ctx.fillRect(MIN_X, PLATFORM_Y, MAX_X - MIN_X, 6);
 
-    // draw characters
     const pf = getFrame(player);
     if (pf) ctx.drawImage(pf, player.x, player.y, player.w, player.h);
     else { ctx.fillStyle = "red"; ctx.fillRect(player.x, player.y, player.w, player.h); }
@@ -222,27 +210,16 @@ console.log("Boxfight System aktiv.");
     if (ef) ctx.drawImage(ef, enemy.x, enemy.y, enemy.w, enemy.h);
     else { ctx.fillStyle = "blue"; ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h); }
 
-    // countdown overlay
     if (!gameStarted) {
       ctx.fillStyle = "red";
       ctx.font = "50px Arial";
       ctx.textAlign = "center";
-      if (countdown > 0) ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
-      else ctx.fillText("LOS!", canvas.width / 2, canvas.height / 2);
-
+      ctx.fillText(countdown > 0 ? countdown : "LOS!", canvas.width / 2, canvas.height / 2);
       countdownTimer++;
-      if (countdownTimer > countdownDelay) {
-        countdown--;
-        countdownTimer = 0;
-        if (countdown < 0) gameStarted = true;
-      }
+      if (countdownTimer > countdownDelay) { countdown--; countdownTimer = 0; if (countdown < 0) gameStarted = true; }
     }
   }
 
-  function loop() {
-    update();
-    draw();
-    if (running) requestAnimationFrame(loop);
-  }
+  function loop() { update(); draw(); if (running) requestAnimationFrame(loop); }
 
 })();
