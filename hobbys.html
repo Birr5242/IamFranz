@@ -8,16 +8,16 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="static/css/boxfight.css" />
   <style>
-    body { background:#111; color:#eee; font-family:Arial, sans-serif; margin:18px; display:flex; flex-direction:column; align-items:center; }
-    nav { width:900px; margin-bottom:6px; }
-    #game { border:3px solid #fff; image-rendering: pixelated; display:block; background:#000; }
-    .hud { width:900px; display:flex; justify-content:space-between; margin-top:8px; align-items:center; color:white; }
-    .bar { width:200px; height:20px; background:#333; border:2px solid #000; }
+    body { background:#fff; color:#111; font-family:Arial, sans-serif; margin:18px; display:flex; flex-direction:column; align-items:center; }
+    nav { width:1131px; margin-bottom:6px; }
+    #game { border:3px solid #000; image-rendering: pixelated; display:block; background:#fff; }
+    .hud { width:1131px; display:flex; justify-content:space-between; margin-top:8px; align-items:center; color:black; }
+    .bar { width:200px; height:20px; background:#ccc; border:2px solid #000; }
     .health { height:100%; background:red; width:100%; border-radius:4px; transition:width 0.2s linear; }
-    .controls { width:900px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; color:white; }
+    .controls { width:1131px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; color:black; }
     button, select { padding:6px 10px; font-size:14px; }
-    #loaderStatus { color:#ddd; font-size:13px; margin-top:8px; width:900px; text-align:center; }
-    .mobile-buttons { display:none; } /* hidden by default, keep simple */
+    #loaderStatus { color:#333; font-size:13px; margin-top:8px; width:1131px; text-align:center; }
+    .mobile-buttons { display:none; }
   </style>
 </head>
 <body>
@@ -29,7 +29,7 @@
     <a href="video.html">Video</a>
   </nav>
 
-  <main style="width:900px;">
+  <main style="width:1131px;">
     <h1>Meine Hobbys</h1>
     <p>Klicke auf Start, um das Boxspiel zu beginnen.</p>
 
@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <canvas id="game" width="900" height="240" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
+    <canvas id="game" width="1131" height="769" aria-label="2D Boxkampf Spiel" tabindex="0"></canvas>
 
     <div class="controls">
       <div>
@@ -68,12 +68,9 @@
     <div id="loaderStatus">Assets werden geladen…</div>
   </main>
 
-  <!-- Preload (Assets exakt so benannt wie von dir) -->
   <script>
     const ASSETS = {
-      // Hintergrund
-      bg_fertig: "img/Hintergrund_fertig.png",
-      // Roter Spieler
+      bg_fertig: "img/Background.png",
       stand: "img/stand.png",
       stand_back: "img/Standrückwärts.png",
       player_run_1: "img/Laufanimation1-1.png",
@@ -90,8 +87,6 @@
       player_punch_2: "img/Boxanimation1-2.png",
       player_punch_1_back: "img/Boxanimationrückwärts-1.png",
       player_punch_2_back: "img/Boxanimationrückwärts-2.png",
-
-      // Blauer Gegner (genaue Namen aus deiner Liste)
       enemy_stand: "img/Blaustand.png",
       enemy_stand_back: "img/Standblaurückwärts.png",
       enemy_run_1: "img/Laufanimationblau-1.png",
@@ -107,36 +102,22 @@
       enemy_punch_1: "img/Blaubox-1.png",
       enemy_punch_2: "img/Blaubox-2.png",
       enemy_punch_1_back: "img/Boxanimationblaurückwärts-1.png",
-      enemy_punch_2_back: "img/Boxanimationblaurückwärts-2.png",
-
-      // optional / extra (nicht direkt gebraucht, aber geladen)
-      bg_jpg: "img/bg.jpg",
-      gym: "img/Gym.mp4",
-      franz: "img/franz.JPG",
-      hintergrund: "img/hintergrund.png",
-      fighter: "img/fighter.png",
-      player_img: "img/player.png",
-      stand_img: "img/stand.png"
+      enemy_punch_2_back: "img/Boxanimationblaurückwärts-2.png"
     };
 
     function preloadImages(list){
-      const keys = Object.keys(list).filter(k=>!k.toLowerCase().includes("gym") && !k.toLowerCase().includes(".mp4")); // skip video
+      const keys = Object.keys(list).filter(k=>!k.toLowerCase().includes(".mp4"));
       const images = {};
       let loaded=0, failed=0;
       const total = keys.length;
       const status = document.getElementById("loaderStatus");
-
       return new Promise(resolve=>{
         if(total===0) return resolve({images, failed});
         keys.forEach(key=>{
           const img = new Image();
           img.src = list[key];
           img.onload = ()=>{ images[key]=img; loaded++; status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check(); };
-          img.onerror = ()=>{ failed++; console.error("Fehler beim Laden:", list[key]); 
-            // placeholder canvas to avoid undefined lookups
-            const ph = document.createElement("canvas"); ph.width=1; ph.height=1; images[key]=ph;
-            status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check();
-          };
+          img.onerror = ()=>{ failed++; const ph = document.createElement("canvas"); ph.width=1; ph.height=1; images[key]=ph; status.textContent=`Assets: ${loaded}/${total} (fehler: ${failed})`; check(); };
         });
         function check(){ if(loaded+failed===total) resolve({images, failed}); }
       });
@@ -151,23 +132,10 @@
         document.getElementById("loaderStatus").textContent = `Ladevorgang abgeschlossen — Fehler: ${failed}`;
         startBtn.disabled=false;
         restartBtn.disabled=false;
-      }).catch(err=>{
-        console.error("Preload-Error",err);
-        document.getElementById("loaderStatus").textContent = "Fehler beim Laden der Assets (Konsole).";
-        if(typeof BoxFightInit==='function') BoxFightInit({}, ASSETS);
-        startBtn.disabled=false; restartBtn.disabled=false;
       });
 
       startBtn.addEventListener('click', ()=>{ if(typeof BoxFightStart==='function') BoxFightStart(); });
       restartBtn.addEventListener('click', ()=>{ if(typeof BoxFightRestart==='function') BoxFightRestart(); });
-
-      // mobile buttons (if you later enable)
-      document.getElementById('mobile-buttons')?.addEventListener('click', ev=>{
-        const btn = ev.target.closest('button'); if(!btn) return;
-        const action = btn.dataset.action;
-        if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,true);
-        setTimeout(()=>{ if(typeof BoxFightMobileAction==='function') BoxFightMobileAction(action,false); },140);
-      });
     })();
   </script>
 
