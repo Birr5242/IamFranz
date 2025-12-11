@@ -1,146 +1,181 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Franz Barjak – Bewerbung</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Franz Barjak – Bewerbung</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js (funktionierender CDN-Link) -->
+  <script src="https://cdn.jsdelivr.net/npm/[email protected]/build/three.min.js"></script>
 </head>
 <body>
 
-<div id="colorBendsContainer"></div>
+  <!-- Shader-Hintergrund -->
+  <div id="colorBendsContainer"></div>
 
-<div id="intro">
-  <h1>Willkommen auf meiner Website</h1>
-  <button id="enterBtn">Jetzt betreten</button>
-</div>
+  <!-- Intro-Seite -->
+  <div id="intro">
+    <h1>Willkommen auf meiner Website</h1>
+    <button id="enterBtn">Jetzt betreten</button>
+  </div>
 
-<nav>
-  <a href="index.html">Start</a>
-  <a href="lebenslauf.html">Lebenslauf</a>
-  <a href="hobbys.html">Hobbys</a>
-  <a href="kontakt.html">Kontakt</a>
-  <a href="video.html">Video</a>
-</nav>
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html">Start</a>
+    <a href="lebenslauf.html">Lebenslauf</a>
+    <a href="hobbys.html">Hobbys</a>
+    <a href="kontakt.html">Kontakt</a>
+    <a href="video.html">Video</a>
+  </nav>
 
-<main id="mainContent" style="display:none;">
-  <section class="hero">
-    <img src="img/teaser-swisscom-liveform-anim-300x300-2x.gif" class="hero-video" alt="Swisscom GIF">
-    <div class="hero-text">
-      <h1>Willkommen auf meiner Bewerbungswebsite</h1>
-      <p>Grüezi! Ich bin Franz Barjak, 17 Jahre alt, Schüler an der KSB, mit Wurzeln in Bolivien und Deutschland. Meine Lieblingsfächer sind Informatik, Wirtschaft, Mathe, Englisch und Sport. Ich liebe Technik und lerne gerne Neues.</p>
-    </div>
-  </section>
-  <section class="content-row">
-    <div class="text-left">
-      <img src="img/franz.JPG" width="200" style="border-radius:50%; box-shadow:0 4px 15px rgba(0,0,0,0.2); margin-bottom:20px;">
-      <p>Ich habe die Lehrstelle als Entwickler Digitales Business bei Swisscom erhalten. Ich bin überglücklich und hoffe, dir gefällt meine Website über mich!</p>
-    </div>
-    <div class="video-right">
-      <video autoplay muted loop playsinline>
-        <source src="img/Gym.mp4" type="video/mp4">
-      </video>
-    </div>
-  </section>
-</main>
+  <!-- Hauptinhalt -->
+  <main id="mainContent" style="display:none;">
+    <section class="hero">
+      <img src="img/teaser-swisscom-liveform-anim-300x300-2x.gif" 
+           alt="Swisscom animiertes GIF" 
+           class="hero-video">
+      <div class="hero-text">
+        <h1>Willkommen auf meiner Bewerbungswebsite</h1>
+        <p>Grüezi! Ich bin Franz Barjak, 17 Jahre alt, Schüler an der KSB, mit Wurzeln in Bolivien und Deutschland. Meine Lieblingsfächer sind Informatik, Wirtschaft, Mathe, Englisch und Sport. Ich liebe Technik und lerne gerne Neues.</p>
+      </div>
+    </section>
 
-<script>
-const intro = document.getElementById('intro');
-const mainContent = document.getElementById('mainContent');
-const enterBtn = document.getElementById('enterBtn');
+    <section class="content-row">
+      <div class="text-left">
+        <img src="img/franz.JPG" 
+             alt="Profilbild Franz" 
+             width="200"
+             style="border-radius:50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom:20px;">
+        <p>Ich habe die Lehrstelle als Entwickler Digitales Business bei Swisscom erhalten. Ich bin überglücklich und hoffe, dir gefällt meine Website über mich!</p>
+      </div>
 
-enterBtn.addEventListener('click', () => {
-  intro.classList.add('fade-out');
-  setTimeout(() => {
-    intro.style.display = 'none';
-    mainContent.style.display = 'block';
-  }, 1000);
-});
+      <div class="video-right">
+        <video autoplay muted loop playsinline>
+          <source src="img/Gym.mp4" type="video/mp4">
+          Dein Browser unterstützt das Video-Tag nicht.
+        </video>
+      </div>
+    </section>
+  </main>
 
-setTimeout(() => {
-  if(!intro.classList.contains('fade-out')){
-    intro.classList.add('fade-out');
+  <!-- Script für Intro -->
+  <script>
+    const intro = document.getElementById('intro');
+    const mainContent = document.getElementById('mainContent');
+    const enterBtn = document.getElementById('enterBtn');
+
+    enterBtn.addEventListener('click', () => {
+      intro.classList.add('fade-out');
+      setTimeout(() => {
+        intro.style.display = 'none';
+        mainContent.style.display = 'block';
+      }, 1000);
+    });
+
     setTimeout(() => {
-      intro.style.display = 'none';
-      mainContent.style.display = 'block';
-    }, 1000);
-  }
-}, 5000);
-</script>
+      if(!intro.classList.contains('fade-out')) {
+        intro.classList.add('fade-out');
+        setTimeout(() => {
+          intro.style.display = 'none';
+          mainContent.style.display = 'block';
+        }, 1000);
+      }
+    }, 5000);
+  </script>
 
-<script>
-const container = document.getElementById('colorBendsContainer');
-container.style.width = '100%';
-container.style.height = '100vh'; // WICHTIG
+  <!-- Shader-Hintergrund Script -->
+  <script>
+    const container = document.getElementById('colorBendsContainer');
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+    const geometry = new THREE.PlaneGeometry(2,2);
 
-const scene = new THREE.Scene();
-const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
-const geometry = new THREE.PlaneGeometry(2,2);
+    // Vertex Shader
+    const vert = `
+      varying vec2 vUv;
+      void main(){
+        vUv = uv;
+        gl_Position = vec4(position,1.0);
+      }
+    `;
 
-const vert = `
-varying vec2 vUv;
-void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
-`;
+    // Fragment Shader mit bunten Wellenfarben
+    const frag = `
+      #define MAX_COLORS 6
+      uniform float uTime;
+      uniform vec2 uPointer;
+      uniform vec3 uColors[MAX_COLORS];
+      varying vec2 vUv;
+      
+      void main(){
+        vec2 p = vUv*2.0-1.0;
+        p += uPointer*0.2;
 
-const frag = `
-uniform float uTime;
-uniform vec2 uPointer;
-varying vec2 vUv;
+        float sum = 0.0;
+        vec3 color = vec3(0.0);
 
-void main(){
-  vec2 p = vUv*2.0-1.0;
-  p += uPointer*0.3;
-  float r = length(p);
-  float angle = atan(p.y,p.x);
+        for(int i=0;i<MAX_COLORS;i++){
+          float w = sin(10.0*length(p) - uTime*2.0 + float(i));
+          color += uColors[i]*0.5*(w+1.0);
+          sum += 0.5*(w+1.0);
+        }
 
-  float red   = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0);
-  float green = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0 + 2.0);
-  float blue  = 0.5 + 0.5*sin(10.0*r - uTime*2.0 + angle*5.0 + 4.0);
+        color /= float(MAX_COLORS);
+        gl_FragColor = vec4(color,1.0);
+      }
+    `;
 
-  gl_FragColor = vec4(red,green,blue,1.0);
-}
-`;
+    // Farben definieren
+    const colors = [
+      new THREE.Vector3(1,0.2,0.3),
+      new THREE.Vector3(0.3,1,0.4),
+      new THREE.Vector3(0.2,0.3,1),
+      new THREE.Vector3(1,1,0.2),
+      new THREE.Vector3(1,0.5,0.8),
+      new THREE.Vector3(0.2,1,1)
+    ];
 
-const material = new THREE.ShaderMaterial({
-  vertexShader: vert,
-  fragmentShader: frag,
-  uniforms: {
-    uTime: { value:0 },
-    uPointer: { value: new THREE.Vector2(0,0) }
-  }
-});
+    const material = new THREE.ShaderMaterial({
+      vertexShader: vert,
+      fragmentShader: frag,
+      uniforms: {
+        uTime: { value: 0 },
+        uPointer: { value: new THREE.Vector2(0,0) },
+        uColors: { value: colors }
+      }
+    });
 
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
 
-const renderer = new THREE.WebGLRenderer({alpha:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-container.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ alpha:true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    container.appendChild(renderer.domElement);
 
-function resize() {
-  renderer.setSize(container.clientWidth, container.clientHeight);
-}
-resize();
-window.addEventListener('resize', resize);
+    const clock = new THREE.Clock();
+    const pointer = new THREE.Vector2();
 
-const clock = new THREE.Clock();
-const pointer = new THREE.Vector2(0,0);
+    container.addEventListener('pointermove', e => {
+      const rect = container.getBoundingClientRect();
+      pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
+      pointer.y = -(((e.clientY-rect.top)/rect.height)*2-1);
+    });
 
-container.addEventListener('pointermove', e=>{
-  const rect = container.getBoundingClientRect();
-  pointer.x = ((e.clientX-rect.left)/rect.width)*2-1;
-  pointer.y = -(((e.clientY-rect.top)/rect.height)*2-1);
-});
+    window.addEventListener('resize', () => {
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
 
-function animate(){
-  material.uniforms.uTime.value = clock.getElapsedTime();
-  material.uniforms.uPointer.value.copy(pointer);
-  renderer.render(scene,camera);
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
+    function animate(){
+      material.uniforms.uTime.value = clock.getElapsedTime();
+      material.uniforms.uPointer.value.copy(pointer);
+      renderer.render(scene,camera);
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
 
 </body>
 </html>
