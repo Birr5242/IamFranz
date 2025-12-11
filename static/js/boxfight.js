@@ -10,7 +10,7 @@
   const PLATFORM_Y = 570;
   const MIN_X = 27, MAX_X = 1121;
   const GRAVITY = 0.6;
-  const PUNCH_COOLDOWN = 2000; // 2 Sekunden Cooldown
+  const PUNCH_COOLDOWN = 3000; // 3 Sekunden Cooldown
   const RUN_SPEED = 2.2;
 
   const keys = { left:false, right:false, punch:false };
