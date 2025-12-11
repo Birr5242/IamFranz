@@ -27,7 +27,7 @@
   function setupCharacters(){
     const SPR_H = 96;
     player = { x:120, y:PLATFORM_Y-SPR_H, w:96, h:SPR_H, hp:100, vy:0, jumping:false, speed:2.2, facing:"right", isPunching:false, punchCooldown:false };
-    enemy  = { x:600, y:PLATFORM_Y-SPR_H, w:96, h:SPR_H, hp:100, vy:0, jumping:false, speed:2.2, facing:"left", isPunching:false, punchCooldown:false };
+    enemy  = { x:600, y:PLATFORM_Y-SPR_H, w:96, h:SPR_H, hp:100, vy:0, jumping:false, speed:2.2, facing:"left", isPunching:false, punchCooldown:false, nextPunchTime:0 };
   }
 
   window.BoxFightStart = function(){ setupCharacters(); running=true; gameStarted=false; countdown=3; countdownTimer=0; requestAnimationFrame(loop); };
@@ -52,7 +52,7 @@
 
     const punchAnim = setInterval(()=>{
       attacker.punchFrame++;
-      if(attacker.punchFrame === Math.floor(PUNCH_DURATION/2)){ 
+      if(attacker.punchFrame === Math.floor(PUNCH_DURATION/2)){
         const reach = 60;
         if(Math.abs(attacker.x - target.x) < reach){
           target.hp = Math.max(0, target.hp - 2.5);
@@ -86,13 +86,20 @@
     const punchRange=60;
     const jumpChance = 0.01*difficulty;
 
+    // KI bewegt sich in Richtung Spieler
     if(dist>punchRange){
       enemy.x += dx>0 ? enemy.speed*difficulty : -enemy.speed*difficulty;
       enemy.facing = dx>0?"right":"left";
     } else {
-      if(!enemy.isPunching && !enemy.punchCooldown) doPunch(enemy, player);
+      // KI schlägt nur in Reichweite und nicht zu schnell
+      const now = Date.now();
+      if(!enemy.isPunching && !enemy.punchCooldown && now > enemy.nextPunchTime){
+        doPunch(enemy, player);
+        enemy.nextPunchTime = now + PUNCH_COOLDOWN;
+      }
     }
 
+    // KI springt gelegentlich
     if(!enemy.jumping && Math.random()<jumpChance) { enemy.vy=-10; enemy.jumping=true; }
 
     enemy.x=Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
