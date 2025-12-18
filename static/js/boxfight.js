@@ -16,6 +16,11 @@
 
   let player, enemy;
 
+  // ───────── 🎵 BACKGROUND SOUND ─────────
+  const bgMusic = new Audio("sounds/BeepBox-Song.mp3");
+  bgMusic.loop = true;
+  bgMusic.volume = 0.4;
+
   window.BoxFightInit = function(imgs){
     images = imgs || {};
   };
@@ -43,10 +48,19 @@
     setupCharacters();
     running=true; gameStarted=false;
     countdown=3; countdownTimer=0;
+
+    // 🎵 Musik starten (nach User-Klick)
+    bgMusic.currentTime = 0;
+    bgMusic.play().catch(()=>{});
+
     requestAnimationFrame(loop);
   };
 
-  window.BoxFightRestart = BoxFightStart;
+  window.BoxFightRestart = function(){
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    BoxFightStart();
+  };
 
   // ───────── INPUT ─────────
   window.addEventListener("keydown", e=>{
@@ -117,7 +131,6 @@
   function update(){
     if(!running || !gameStarted) return;
 
-    // Spieler Bewegung
     if(!player.isPunching){
       if(keys.left) player.x -= player.speed;
       if(keys.right) player.x += player.speed;
@@ -132,32 +145,24 @@
       player.vy = 0; player.jumping = false;
     }
 
-    // KI Richtung IMMER zum Spieler
     const dx = player.x - enemy.x;
     enemy.facing = dx > 0 ? "left" : "right";
 
     const dist = Math.abs(dx);
     const diff = parseFloat(document.getElementById("difficulty").value || "1");
 
-    const APPROACH_DIST = 50;   // ab hier läuft KI
-const ATTACK_DIST   = 30;  // echte Schlagdistanz
+    const APPROACH_DIST = 50;
+    const ATTACK_DIST = 30;
 
-if(dist > APPROACH_DIST && !enemy.isPunching){
-  // ZU WEIT → hingehen
-  enemy.x += dx > 0 ? enemy.speed * diff : -enemy.speed * diff;
-
-} else if(dist > ATTACK_DIST){
-  // KAMPFDISTANZ → stehen bleiben
-  // NICHTS TUN (kein Zucken, kein Laufen)
-
-} else {
-  // SCHLAGDISTANZ
-  const now = Date.now();
-  if(now > enemy.nextPunch){
-    enemyPunch();
-    enemy.nextPunch = now + 900;
-  }
-}
+    if(dist > APPROACH_DIST && !enemy.isPunching){
+      enemy.x += dx > 0 ? enemy.speed * diff : -enemy.speed * diff;
+    } else if(dist <= ATTACK_DIST){
+      const now = Date.now();
+      if(now > enemy.nextPunch){
+        enemyPunch();
+        enemy.nextPunch = now + 900;
+      }
+    }
 
     enemy.x = Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
 
@@ -173,6 +178,7 @@ if(dist > APPROACH_DIST && !enemy.isPunching){
 
     if(player.hp<=0 || enemy.hp<=0){
       running=false;
+      bgMusic.pause();
       setTimeout(()=>alert(player.hp<=0?"Du verlierst!":"Du gewinnst!"),50);
     }
   }
