@@ -3,8 +3,7 @@
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
 
-  let images = {}, assets = {};
-  let player = null, enemy = null;
+  let images = {};
   let running = false, gameStarted = false;
   let countdown = 3, countdownTimer = 0;
   const countdownDelay = 60;
@@ -15,29 +14,28 @@
 
   const keys = { left:false, right:false };
 
-  window.BoxFightInit = function(loadedImages, passedAssets){
-    images = loadedImages || {};
-    assets = passedAssets || {};
-    if(images.bg_fertig) images.bg = images.bg_fertig;
+  let player, enemy;
+
+  window.BoxFightInit = function(imgs){
+    images = imgs || {};
   };
 
   function setupCharacters(){
     const H = 96;
+
     player = {
       x:120, y:PLATFORM_Y-H, w:96, h:H,
       hp:100, vy:0, jumping:false,
       speed:2.2, facing:"right",
-      isPunching:false, punchCooldown:false,
-      sprite:images.stand
+      isPunching:false, punchFrame:0, punchCooldown:false
     };
 
     enemy = {
       x:600, y:PLATFORM_Y-H, w:96, h:H,
       hp:100, vy:0, jumping:false,
-      speed:2.1, facing:"left",
-      isPunching:false, punchCooldown:false,
-      sprite:images.enemy_stand,
-      nextPunchTime:0
+      speed:2.0, facing:"left",
+      isPunching:false, punchFrame:0, punchCooldown:false,
+      nextPunch:0
     };
   }
 
@@ -52,7 +50,7 @@
 
   // ───────── INPUT ─────────
   window.addEventListener("keydown", e=>{
-    if(!player||!gameStarted) return;
+    if(!gameStarted) return;
 
     if(e.code==="KeyA"){ keys.left=true; player.facing="left"; }
     if(e.code==="KeyD"){ keys.right=true; player.facing="right"; }
@@ -62,9 +60,7 @@
     }
 
     if(e.code==="KeyK"){
-      if(!player.isPunching && !player.punchCooldown){
-        startPunch(player, enemy);
-      }
+      playerPunch();
     }
   });
 
@@ -73,41 +69,48 @@
     if(e.code==="KeyD") keys.right=false;
   });
 
-  // ───────── PUNCH SYSTEM ─────────
-  function startPunch(attacker, target){
-    attacker.isPunching = true;
-    attacker.punchCooldown = true;
+  // ───────── SPIELER SCHLAG ─────────
+  function playerPunch(){
+    if(player.isPunching || player.punchCooldown) return;
 
-    const right = attacker.facing === "right";
-
-    attacker.sprite = right
-      ? images.stand
-      : images.stand_back;
+    player.isPunching = true;
+    player.punchCooldown = true;
+    player.punchFrame = 1;
 
     setTimeout(()=>{
-      attacker.sprite = right
-        ? images.player_punch_1 || images.enemy_punch_1
-        : images.player_punch_1_back || images.enemy_punch_1_back;
-    }, 80);
-
-    setTimeout(()=>{
-      attacker.sprite = right
-        ? images.player_punch_2 || images.enemy_punch_2
-        : images.player_punch_2_back || images.enemy_punch_2_back;
-
-      if(Math.abs(attacker.x - target.x) < 65){
-        target.hp = Math.max(0, target.hp - 8);
+      player.punchFrame = 2;
+      if(Math.abs(player.x - enemy.x) < 65){
+        enemy.hp = Math.max(0, enemy.hp - 8);
       }
-    }, 160);
+    }, 120);
 
     setTimeout(()=>{
-      attacker.sprite = right
-        ? (attacker===player?images.stand:images.enemy_stand)
-        : (attacker===player?images.stand_back:images.enemy_stand_back);
+      player.punchFrame = 0;
+      player.isPunching = false;
+      setTimeout(()=>player.punchCooldown=false, 500);
+    }, 240);
+  }
 
-      attacker.isPunching = false;
-      setTimeout(()=>attacker.punchCooldown=false, 600);
-    }, 260);
+  // ───────── KI SCHLAG ─────────
+  function enemyPunch(){
+    if(enemy.isPunching || enemy.punchCooldown) return;
+
+    enemy.isPunching = true;
+    enemy.punchCooldown = true;
+    enemy.punchFrame = 1;
+
+    setTimeout(()=>{
+      enemy.punchFrame = 2;
+      if(Math.abs(enemy.x - player.x) < 65){
+        player.hp = Math.max(0, player.hp - 6);
+      }
+    }, 120);
+
+    setTimeout(()=>{
+      enemy.punchFrame = 0;
+      enemy.isPunching = false;
+      setTimeout(()=>enemy.punchCooldown=false, 800);
+    }, 240);
   }
 
   // ───────── UPDATE ─────────
@@ -129,26 +132,24 @@
       player.vy = 0; player.jumping = false;
     }
 
-    // ───────── KI LOGIK ─────────
+    // KI Richtung IMMER zum Spieler
     const dx = player.x - enemy.x;
     enemy.facing = dx > 0 ? "right" : "left";
 
     const dist = Math.abs(dx);
-    const diff = parseFloat(document.getElementById("difficulty").value);
+    const diff = parseFloat(document.getElementById("difficulty").value || "1");
 
     if(dist > 70 && !enemy.isPunching){
       enemy.x += dx > 0 ? enemy.speed*diff : -enemy.speed*diff;
-      enemy.sprite = enemy.facing==="right"
-        ? images.enemy_run_1
-        : images.enemy_run_1_back;
-    }
-    else{
+    } else {
       const now = Date.now();
-      if(!enemy.isPunching && !enemy.punchCooldown && now > enemy.nextPunchTime){
-        startPunch(enemy, player);
-        enemy.nextPunchTime = now + 1000;
+      if(now > enemy.nextPunch){
+        enemyPunch();
+        enemy.nextPunch = now + 1200;
       }
     }
+
+    enemy.x = Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
 
     enemy.vy += GRAVITY;
     enemy.y += enemy.vy;
@@ -166,12 +167,39 @@
     }
   }
 
+  // ───────── ANIMATION ─────────
+  function getSprite(c){
+    const right = c.facing==="right";
+
+    if(c.isPunching){
+      if(c === player){
+        return right
+          ? (c.punchFrame===1?images.player_punch_1:images.player_punch_2)
+          : (c.punchFrame===1?images.player_punch_1_back:images.player_punch_2_back);
+      } else {
+        return right
+          ? (c.punchFrame===1?images.enemy_punch_1:images.enemy_punch_2)
+          : (c.punchFrame===1?images.enemy_punch_1_back:images.enemy_punch_2_back);
+      }
+    }
+
+    if(c.jumping){
+      return right
+        ? (c===player?images.player_jump_2:images.enemy_jump_2)
+        : (c===player?images.player_jump_2_back:images.enemy_jump_2_back);
+    }
+
+    return right
+      ? (c===player?images.stand:images.enemy_stand)
+      : (c===player?images.stand_back:images.enemy_stand_back);
+  }
+
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(images.bg) ctx.drawImage(images.bg,0,0,canvas.width,canvas.height);
+    if(images.bg_fertig) ctx.drawImage(images.bg_fertig,0,0,canvas.width,canvas.height);
 
-    ctx.drawImage(player.sprite, player.x, player.y, player.w, player.h);
-    ctx.drawImage(enemy.sprite, enemy.x, enemy.y, enemy.w, enemy.h);
+    ctx.drawImage(getSprite(player), player.x, player.y, player.w, player.h);
+    ctx.drawImage(getSprite(enemy), enemy.x, enemy.y, enemy.w, enemy.h);
 
     if(!gameStarted){
       ctx.fillStyle="red";
