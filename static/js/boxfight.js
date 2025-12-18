@@ -174,12 +174,12 @@
     }
 
     // ── Abstand korrigieren ──
-    const charWidth = player.w; // Abstand zum Überlappen
-    if(Math.abs(player.x - enemy.x) < charWidth){
+    const 1 = player.w; // Abstand zum Überlappen
+    if(Math.abs(player.x - enemy.x) < 1){
         if(player.x < enemy.x){
-            player.x = enemy.x - charWidth;
+            player.x = enemy.x - 1;
         } else {
-            player.x = enemy.x + charWidth;
+            player.x = enemy.x + 1;
         }
     }
 
