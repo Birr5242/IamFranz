@@ -134,13 +134,13 @@
 
     // KI Richtung IMMER zum Spieler
     const dx = player.x - enemy.x;
-    enemy.facing = dx > 0 ? "right" : "left";
+    enemy.facing = dx > 0 ? "left" : "right";
 
     const dist = Math.abs(dx);
     const diff = parseFloat(document.getElementById("difficulty").value || "1");
 
-    const APPROACH_DIST = 90;   // ab hier läuft KI
-const ATTACK_DIST   = 48;  // echte Schlagdistanz
+    const APPROACH_DIST = 50;   // ab hier läuft KI
+const ATTACK_DIST   = 30;  // echte Schlagdistanz
 
 if(dist > APPROACH_DIST && !enemy.isPunching){
   // ZU WEIT → hingehen
