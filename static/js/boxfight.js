@@ -173,14 +173,19 @@
       enemy.vy = 0; enemy.jumping = false;
     }
 
-    // ── Abstand korrigieren ──
-    const chardWith = player.w; // Abstand zum Überlappen
-    if(Math.abs(player.x - enemy.x) < chardWith){
-        if(player.x < enemy.x){
-            player.x = enemy.x - chardWith;
-        } else {
-            player.x = enemy.x + chardWith;
-        }
+    // ── Smooth Abstandskorrektur (2 Pixel) ──
+    const minDist = 2; // minimaler Abstand in Pixel
+    const overlap = (player.x + player.w) - (enemy.x);
+    if(overlap > -minDist && overlap < 0){
+      // Spieler links von Gegner
+      const push = (minDist + overlap) / 2;
+      player.x -= push;
+      enemy.x += push;
+    } else if((enemy.x + enemy.w) - (player.x) > -minDist && (enemy.x + enemy.w) - (player.x) < 0){
+      // Gegner links von Spieler
+      const push = (minDist + ((enemy.x + enemy.w) - player.x)) / 2;
+      enemy.x -= push;
+      player.x += push;
     }
 
     // ── HP-Bar Update ──
