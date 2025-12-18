@@ -131,11 +131,11 @@
   function update(){
     if(!running || !gameStarted) return;
 
+    // ── Spielerbewegung ──
     if(!player.isPunching){
       if(keys.left) player.x -= player.speed;
       if(keys.right) player.x += player.speed;
     }
-
     player.x = Math.max(MIN_X, Math.min(MAX_X-player.w, player.x));
 
     player.vy += GRAVITY;
@@ -145,6 +145,7 @@
       player.vy = 0; player.jumping = false;
     }
 
+    // ── KI-Bewegung ──
     const dx = player.x - enemy.x;
     enemy.facing = dx > 0 ? "left" : "right";
 
@@ -163,7 +164,6 @@
         enemy.nextPunch = now + 900;
       }
     }
-
     enemy.x = Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
 
     enemy.vy += GRAVITY;
@@ -173,6 +173,17 @@
       enemy.vy = 0; enemy.jumping = false;
     }
 
+    // ── Abstand korrigieren ──
+    const charWidth = player.w; // Abstand zum Überlappen
+    if(Math.abs(player.x - enemy.x) < charWidth){
+        if(player.x < enemy.x){
+            player.x = enemy.x - charWidth;
+        } else {
+            player.x = enemy.x + charWidth;
+        }
+    }
+
+    // ── HP-Bar Update ──
     document.getElementById("player-health").style.width = player.hp+"%";
     document.getElementById("enemy-health").style.width = enemy.hp+"%";
 
