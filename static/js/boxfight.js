@@ -139,15 +139,25 @@
     const dist = Math.abs(dx);
     const diff = parseFloat(document.getElementById("difficulty").value || "1");
 
-    if(dist > 70 && !enemy.isPunching){
-      enemy.x += dx > 0 ? enemy.speed*diff : -enemy.speed*diff;
-    } else {
-      const now = Date.now();
-      if(now > enemy.nextPunch){
-        enemyPunch();
-        enemy.nextPunch = now + 1200;
-      }
-    }
+    const APPROACH_DIST = 90;   // ab hier läuft KI
+const ATTACK_DIST   = 48;  // echte Schlagdistanz
+
+if(dist > APPROACH_DIST && !enemy.isPunching){
+  // ZU WEIT → hingehen
+  enemy.x += dx > 0 ? enemy.speed * diff : -enemy.speed * diff;
+
+} else if(dist > ATTACK_DIST){
+  // KAMPFDISTANZ → stehen bleiben
+  // NICHTS TUN (kein Zucken, kein Laufen)
+
+} else {
+  // SCHLAGDISTANZ
+  const now = Date.now();
+  if(now > enemy.nextPunch){
+    enemyPunch();
+    enemy.nextPunch = now + 900;
+  }
+}
 
     enemy.x = Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
 
