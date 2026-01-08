@@ -14,11 +14,12 @@
   const PLATFORM_Y = 570;
   const MIN_X = 27, MAX_X = 1121;
   const GRAVITY = 0.6;
-  const MIN_DISTANCE = 2;
 
   const keys = { left:false, right:false };
-
   let player, enemy;
+
+  let hitStopFrames = 0;
+  let screenShake = 0;
 
   const bgMusic = new Audio("sounds/BeepBox-Song.mp3");
   bgMusic.loop = true;
@@ -28,12 +29,12 @@
 
   function setupCharacters(){
     const H = 96;
-
     player = {
       x:120, y:PLATFORM_Y-H, w:96, h:H,
       hp:100, vy:0, jumping:false,
       speed:2.2, facing:"right",
-      isPunching:false, punchFrame:0, punchCooldown:false
+      isPunching:false, punchFrame:0, punchCooldown:false,
+      hitFlash:0
     };
 
     enemy = {
@@ -41,7 +42,8 @@
       hp:100, vy:0, jumping:false,
       speed:2.0, facing:"left",
       isPunching:false, punchFrame:0, punchCooldown:false,
-      nextPunch:0
+      nextPunch:0,
+      hitFlash:0
     };
   }
 
@@ -55,15 +57,12 @@
   window.BoxFightStart = function(){
     stopLoop();
     setupCharacters();
-
     running = true;
     gameStarted = false;
     countdown = 3;
     countdownTimer = 0;
-
     bgMusic.currentTime = 0;
     bgMusic.play().catch(()=>{});
-
     loop();
   };
 
@@ -76,7 +75,6 @@
   // INPUT
   window.addEventListener("keydown", e=>{
     if(!gameStarted) return;
-
     if(e.code==="KeyA"){ keys.left=true; player.facing="left"; }
     if(e.code==="KeyD"){ keys.right=true; player.facing="right"; }
     if(e.code==="KeyW" && !player.jumping){
@@ -90,6 +88,13 @@
     if(e.code==="KeyD") keys.right=false;
   });
 
+  function hitEffect(target, push){
+    target.hitFlash = 6;
+    hitStopFrames = 6;
+    screenShake = 6;
+    target.x += push;
+  }
+
   function playerPunch(){
     if(player.isPunching || player.punchCooldown) return;
     player.isPunching = true;
@@ -98,7 +103,11 @@
 
     setTimeout(()=>{
       player.punchFrame = 2;
-      if(Math.abs(player.x - enemy.x) < 65) enemy.hp = Math.max(0, enemy.hp - 8);
+      const dist = Math.abs((player.x+player.w/2)-(enemy.x+enemy.w/2));
+      if(dist < 60){
+        enemy.hp = Math.max(0, enemy.hp - 8);
+        hitEffect(enemy, player.facing==="right"?10:-10);
+      }
     },120);
 
     setTimeout(()=>{
@@ -116,7 +125,11 @@
 
     setTimeout(()=>{
       enemy.punchFrame=2;
-      if(Math.abs(enemy.x-player.x)<65) player.hp=Math.max(0,player.hp-6);
+      const dist = Math.abs((enemy.x+enemy.w/2)-(player.x+player.w/2));
+      if(dist < 60){
+        player.hp = Math.max(0, player.hp - 6);
+        hitEffect(player, enemy.facing==="right"?10:-10);
+      }
     },120);
 
     setTimeout(()=>{
@@ -126,30 +139,23 @@
     },240);
   }
 
- function resolveCollision(){
-  const pRight = player.x + player.w;
-  const eRight = enemy.x + enemy.w;
-
-  // Spieler links, Gegner rechts
-  if(pRight > enemy.x && player.x < enemy.x){
-    const overlap = pRight - enemy.x;
-    player.x -= overlap / 2;
-    enemy.x  += overlap / 2;
-  }
-
-  // Gegner links, Spieler rechts
-  if(eRight > player.x && enemy.x < player.x){
-    const overlap = eRight - player.x;
-    enemy.x  -= overlap / 2;
-    player.x += overlap / 2;
-  }
-}
-      }
+  function resolveCollision(){
+    const pR = player.x + player.w;
+    const eR = enemy.x + enemy.w;
+    if(pR > enemy.x && player.x < enemy.x){
+      player.x -= pR - enemy.x;
+    }
+    if(eR > player.x && enemy.x < player.x){
+      enemy.x -= eR - player.x;
     }
   }
 
   function update(){
     if(!running || !gameStarted) return;
+    if(hitStopFrames > 0){
+      hitStopFrames--;
+      return;
+    }
 
     if(!player.isPunching){
       if(keys.left) player.x -= player.speed;
@@ -164,15 +170,15 @@
       player.jumping = false;
     }
 
-    const dx = player.x - enemy.x;
-    enemy.facing = dx < 0 ? "left" : "right";
+    const dx = (player.x+player.w/2)-(enemy.x+enemy.w/2);
+    enemy.facing = dx > 0 ? "right" : "left";
 
     const dist = Math.abs(dx);
     const diff = parseFloat(document.getElementById("difficulty").value || "1");
 
-    if(dist > 50 && !enemy.isPunching){
+    if(dist > 45 && !enemy.isPunching){
       enemy.x += dx > 0 ? enemy.speed*diff : -enemy.speed*diff;
-    } else if(dist < 30 && Date.now()>enemy.nextPunch){
+    } else if(dist < 35 && Date.now()>enemy.nextPunch){
       enemyPunch();
       enemy.nextPunch = Date.now()+900;
     }
@@ -186,8 +192,8 @@
 
     resolveCollision();
 
-    player.x = Math.max(MIN_X, Math.min(MAX_X-player.w, player.x));
-    enemy.x  = Math.max(MIN_X, Math.min(MAX_X-enemy.w, enemy.x));
+    player.hitFlash && player.hitFlash--;
+    enemy.hitFlash && enemy.hitFlash--;
 
     document.getElementById("player-health").style.width = player.hp+"%";
     document.getElementById("enemy-health").style.width = enemy.hp+"%";
@@ -201,11 +207,20 @@
   }
 
   function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(images.bg_fertig) ctx.drawImage(images.bg_fertig,0,0,canvas.width,canvas.height);
+    let shakeX = screenShake ? (Math.random()*6-3) : 0;
+    let shakeY = screenShake ? (Math.random()*6-3) : 0;
+    screenShake && screenShake--;
 
-    ctx.drawImage(getSprite(player),player.x,player.y,player.w,player.h);
-    ctx.drawImage(getSprite(enemy),enemy.x,enemy.y,enemy.w,enemy.h);
+    ctx.setTransform(1,0,0,1,shakeX,shakeY);
+    ctx.clearRect(-10,-10,canvas.width+20,canvas.height+20);
+
+    if(images.bg_fertig)
+      ctx.drawImage(images.bg_fertig,0,0,canvas.width,canvas.height);
+
+    drawChar(player);
+    drawChar(enemy);
+
+    ctx.setTransform(1,0,0,1,0,0);
 
     if(!gameStarted){
       ctx.fillStyle="red";
@@ -217,6 +232,14 @@
         countdown--; countdownTimer=0;
         if(countdown<0) gameStarted=true;
       }
+    }
+  }
+
+  function drawChar(c){
+    ctx.drawImage(getSprite(c),c.x,c.y,c.w,c.h);
+    if(c.hitFlash){
+      ctx.fillStyle="rgba(255,255,255,0.4)";
+      ctx.fillRect(c.x,c.y,c.w,c.h);
     }
   }
 
