@@ -126,18 +126,25 @@
     },240);
   }
 
-  function resolveCollision(){
-    const dx = (player.x + player.w/2) - (enemy.x + enemy.w/2);
-    const overlap = player.w/2 + enemy.w/2 + MIN_DISTANCE - Math.abs(dx);
+ function resolveCollision(){
+  const pRight = player.x + player.w;
+  const eRight = enemy.x + enemy.w;
 
-    if(overlap > 0){
-      const push = overlap / 2;
-      if(dx > 0){
-        player.x += push;
-        enemy.x -= push;
-      } else {
-        player.x -= push;
-        enemy.x += push;
+  // Spieler links, Gegner rechts
+  if(pRight > enemy.x && player.x < enemy.x){
+    const overlap = pRight - enemy.x;
+    player.x -= overlap / 2;
+    enemy.x  += overlap / 2;
+  }
+
+  // Gegner links, Spieler rechts
+  if(eRight > player.x && enemy.x < player.x){
+    const overlap = eRight - player.x;
+    enemy.x  -= overlap / 2;
+    player.x += overlap / 2;
+  }
+}
+
       }
     }
   }
