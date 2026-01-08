@@ -144,7 +144,6 @@
     player.x += overlap / 2;
   }
 }
-
       }
     }
   }
